@@ -1,0 +1,513 @@
+@if (record(); as s) {
+  <div class="crumb">
+    <a [routerLink]="s.type === 'lead' ? '/sales/leads' : '/sales/opportunities'">{{
+      s.type === 'lead' ? '线索管理' : '商机管理'
+    }}</a
+    ><app-icon name="chevron" /><span>{{ s.id }}</span>
+  </div>
+  <div class="page-heading">
+    <div>
+      <h1>
+        {{ s.projectName || '待补项目名称' }}
+        <app-badge [text]="s.type === 'lead' ? s.status : s.stage" />
+      </h1>
+      <p>
+        {{ store.customer(s.customerId)?.name }} · {{ s.id }} ·
+        {{ s.type === 'lead' ? '线索' : '商机' }}详情
+      </p>
+    </div>
+    <div class="header-actions">
+      <button class="btn" [disabled]="!store.salesEditable()" (click)="forms.editSales(s)">
+        <app-icon name="edit" />编辑信息
+      </button>
+      @if (s.type === 'lead') {
+        <button class="btn primary" [disabled]="!store.salesEditable()" (click)="convert()">
+          {{ s.convertedTo ? '查看已转换商机' : '转商机' }}<app-icon name="arrow" />
+        </button>
+      } @else if (s.stage === '赢单') {
+        <button
+          class="btn primary"
+          [disabled]="!store.salesEditable() && store.role() !== 'pm'"
+          (click)="bridge()"
+        >
+          创建 / 打开交付项目<app-icon name="arrow" />
+        </button>
+        <button class="btn" [disabled]="store.role() !== 'pm'" (click)="associateDraft()">关联已有项目草稿</button>
+      } @else if (s.stage !== '丢单') {
+        <button
+          class="btn primary"
+          [disabled]="!store.salesEditable()"
+          (click)="s.stage === '合同谈判' ? forms.close(s.id, '赢单') : store.advance(s.id)"
+        >
+          {{ s.stage === '合同谈判' ? '记录赢单' : '完成本步，进入下一步'
+          }}<app-icon name="arrow" />
+        </button>
+      }
+    </div>
+  </div>
+  @if (s.type === 'lead' && leadMissing().length) {
+    <div class="inline-alert warning"><app-icon name="info"/><span>转商机前需要补齐：</span>
+      @for (item of leadMissing(); track item) { <button class="text-link" (click)="locateLeadItem(item)">{{ item }}</button> }
+    </div>
+  }
+  <div class="step-guide">
+    <div class="person-row">
+      <span class="circle"><app-icon name="info" /></span>
+      <div>
+        <h3>{{ nextAction() }}</h3>
+        <p>当前角色：{{ store.roleInfo().name }} · 客户资料沿用同一来源，业务记录持续带入。</p>
+      </div>
+    </div>
+    <button class="btn small" (click)="tab.set(s.type === 'lead' ? '资料' : '沟通')">
+      {{ s.type === 'lead' ? '去补资料' : '去记录跟进' }}
+    </button>
+  </div>
+  @if (guideMode()) { <app-mainline-guide /> }
+  @if (s.needsReview) {
+    <div class="inline-alert warning">
+      <app-icon name="info" /><span>关键资料已变化，需重新复核。请到资料区补齐后再推进。</span>
+    </div>
+  }
+  <div class="tabs">
+    @for (t of tabs(); track t) {
+      <button [class.active]="tab() === t" (click)="tab.set(t)">{{ t }}</button>
+    }
+  </div>
+  @if (tab() === '概览') {
+    <div class="detail-layout">
+      <div>
+        <section class="panel section-spacing">
+          <div class="panel-head">
+            <h2>基础信息</h2>
+            <button
+              class="text-link"
+              [disabled]="!store.salesEditable()"
+              (click)="forms.editSales(s)"
+            >
+              补充 / 修改
+            </button>
+          </div>
+          <div class="details-grid">
+            <div>
+              <div class="detail-label">客户</div>
+              <div class="detail-value">{{ store.customer(s.customerId)?.name }}</div>
+            </div>
+            <div>
+              <div class="detail-label">国家 / 地区</div>
+              <div class="detail-value">{{ store.customer(s.customerId)?.country }}</div>
+            </div>
+            <div>
+              <div class="detail-label">意向产品</div>
+              <div class="detail-value">储能系统</div>
+            </div>
+            <div>
+              <div class="detail-label">预计容量</div>
+              <div class="detail-value">{{ s.capacity || '待确认' }} {{ s.unit }}</div>
+            </div>
+            <div>
+              <div class="detail-label">预计金额 / 币种</div>
+              <div class="detail-value">
+                {{ s.amount ? store.money(s.amount, s.currency) : '待确认' }}
+              </div>
+            </div>
+            <div>
+              <div class="detail-label">预计签单日期</div>
+              <div class="detail-value">{{ s.expectedDate || '待确认' }}</div>
+            </div>
+            <div>
+              <div class="detail-label">实际销售负责人</div>
+              <div class="detail-value">{{ s.owner }}</div>
+            </div>
+            <div>
+              <div class="detail-label">创建录入人</div>
+              <div class="detail-value">{{ s.operator }}</div>
+            </div>
+            <div>
+              <div class="detail-label">最近编辑人</div>
+              <div class="detail-value">{{ s.lastEditor || s.operator }}</div>
+            </div>
+            <div>
+              <div class="detail-label">线索来源</div>
+              <div class="detail-value">{{ s.source }}</div>
+            </div>
+            <div class="full">
+              <div class="detail-label">客户及项目背景</div>
+              <div class="detail-value">
+                {{ s.description || '可先保存草稿，再补充背景说明。' }}
+              </div>
+            </div>
+            @if (s.type === 'opportunity') {
+              <div>
+                <div class="detail-label">人工项目等级</div>
+                <div class="detail-value"><app-badge [text]="s.grade || '待选择'" /></div>
+              </div>
+              <div>
+                <div class="detail-label">是否投标</div>
+                <div class="detail-value">{{ s.tender }}</div>
+              </div>
+              <div>
+                <div class="detail-label">贸易条款</div>
+                <div class="detail-value">{{ s.tradeTerm || '可后补' }}</div>
+              </div>
+              <div class="full">
+                <div class="detail-label">规则商机名称预览</div>
+                <div class="detail-value">{{ store.salesName(s) }}</div>
+              </div>
+            }
+          </div>
+        </section>
+        @if (s.type === 'opportunity') {
+          <section class="panel section-spacing">
+            <div class="panel-head">
+              <h2>销售推进</h2>
+              <app-badge text="阶段动作演示" />
+            </div>
+            <div class="stage-steps">
+              @for (stage of stages; track stage; let i = $index) {
+                @if (stage !== '丢单') {
+                  <div
+                    class="stage-step"
+                    [class.active]="stage === s.stage"
+                    [class.done]="i < stageIndex()"
+                  >
+                    <span class="stage-number">{{ i + 1 }}</span
+                    >{{ stage }}
+                  </div>
+                }
+              }
+            </div>
+            <div class="stage-note">
+              <h3>
+                {{ s.stage === '赢单' || s.stage === '丢单' ? '关闭记录' : '当前阶段：' + s.stage }}
+              </h3>
+              <p>
+                {{
+                  s.reason ||
+                    '保存当前阶段客户沟通结果，再完成本步。报价与合同后半程为轻量演示，正式审批未接入。'
+                }}
+              </p>
+              @if (s.closedDate) {
+                <p>
+                  关闭日期：{{ s.closedDate }} · 确认收入日期：{{
+                    s.incomeDate || '未记录，不自动推断'
+                  }}
+                </p>
+              }
+            </div>
+            <div class="row-actions" style="padding: 18px 24px">
+              @if (s.stage !== '赢单' && s.stage !== '丢单') {
+                <button
+                  class="btn"
+                  [disabled]="!store.salesEditable()"
+                  (click)="forms.activity(s.id)"
+                >
+                  <app-icon name="plus" />记录本轮沟通</button
+                ><button
+                  class="btn danger"
+                  [disabled]="!store.salesEditable()"
+                  (click)="forms.close(s.id, '丢单')"
+                >
+                  记录丢单
+                </button>
+              }
+            </div>
+          </section>
+        } @else {
+          <section class="panel padded">
+            <div class="section-heading"><h3>线索处理</h3></div>
+            <p style="font-size: 12px">
+              无预算可选择暂缓，重复或虚假线索可归档；原因留存，不直接删除记录。
+            </p>
+            <div class="row-actions">
+              <button class="btn" [disabled]="!store.salesEditable()" (click)="archive('暂缓跟进')">
+                暂缓跟进</button
+              ><button class="btn" [disabled]="!store.salesEditable()" (click)="archive('已归档')">
+                归档线索</button
+              ><button class="btn" [disabled]="!store.salesEditable()" (click)="archive('待跟进')">
+                恢复跟进
+              </button>
+            </div>
+          </section>
+        }
+      </div>
+      <aside>
+        <section class="panel aside-info section-spacing">
+          <h3>主要联系人</h3>
+          <div class="person-row">
+            <span class="avatar">{{ store.contact(s)?.name?.slice(0, 1) || '客' }}</span>
+            <div>
+              <strong>{{ store.contact(s)?.name || '待补联系人' }}</strong>
+              <p style="font-size: 11px; margin: 3px 0 0">
+                {{ store.contact(s)?.position || '客户对接人' }}
+              </p>
+            </div>
+          </div>
+          <div><span class="label">电子邮箱</span>{{ store.contact(s)?.email || '待补充' }}</div>
+          <div><span class="label">联系电话</span>{{ store.contact(s)?.phone || '待补充' }}</div>
+          <button
+            class="btn small"
+            [disabled]="!store.salesEditable()"
+            (click)="forms.customer(store.customer(s.customerId))"
+          >
+            编辑客户 / 联系人
+          </button>
+        </section>
+        <section class="panel source-summary section-spacing">
+          <h3>资料状态</h3>
+          <p>
+            需求导入表：{{ store.has(s.id, '需求导入表') ? '已关联' : '未上传' }}<br />沟通记录：{{
+              store.activities(s.id).length
+            }}条<br />最近有效跟进：{{ store.days(s) }}天前
+          </p>
+          <button class="text-link" (click)="tab.set('资料')">查看附件与来源</button>
+        </section>
+        @if (s.type === 'opportunity') {
+          <div class="source-card">
+            <h3>分支规则</h3>
+            <p>
+              {{
+                needsTeam()
+                  ? '投标且A/S级，需负责人指定团队和成员确认。'
+                  : '本项目不触发重点投标团队，不强制PM和运维提前参与。'
+              }}
+            </p>
+            @if (s.leadId) {
+              <a class="text-link" [routerLink]="['/sales/detail', s.leadId]">返回来源线索</a>
+            }
+          </div>
+        }
+      </aside>
+    </div>
+  }
+  @if (tab() === '沟通') {
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>客户沟通时间线</h2>
+          <p>手填摘要或普通纪要都可留存，不强制AI。</p>
+        </div>
+        <button
+          class="btn primary"
+          [disabled]="
+            !store.salesEditable() && store.role() !== 'solution' && store.role() !== 'pm'
+          "
+          (click)="forms.activity(s.id)"
+        >
+          <app-icon name="plus" />新增沟通记录
+        </button>
+      </div>
+      <div class="timeline">
+        @for (a of store.activities(s.id); track a.id) {
+          <div class="timeline-item">
+            <span class="avatar">{{ a.operator.slice(0, 1) }}</span>
+            <div>
+              <h4>{{ a.type }} · {{ a.date }} <app-badge [text]="a.stage" /></h4>
+              <p>{{ a.summary }}</p>
+              @if (a.next) {
+                <p>下一步：{{ a.next }}</p>
+              }
+              <small>{{ a.operator }} · 参与人：{{ a.people || '未记录' }}</small>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty">还没有沟通记录，点击“新增沟通记录”开始。</div>
+        }
+      </div>
+    </section>
+    <section class="panel space-top">
+      <app-documents [entityId]="s.id" [kinds]="['沟通纪要']" title="普通沟通纪要" />
+    </section>
+  }
+  @if (tab() === '资料') {
+    <section class="panel">
+      <app-documents
+        [entityId]="s.id"
+        [kinds]="
+          s.type === 'lead'
+            ? ['需求导入表', '沟通纪要']
+            : ['需求导入表', '方案报价样例', '沟通纪要']
+        "
+      />
+    </section>
+  }
+  @if (tab() === '团队') {
+    <div class="inline-alert">
+      <app-icon name="info" /><span>{{
+        needsTeam()
+          ? '本项目满足投标且A/S条件，先由负责人指定，再由成员确认。'
+          : '当前条件不要求重点投标团队；下方可查看已留存的协作信息。'
+      }}</span>
+    </div>
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>投标协作团队</h2>
+          <p>{{ confirmCount() }} / {{ s.team.length }} 已确认 · G1：{{ s.g1 }}</p>
+        </div>
+        <div class="row-actions">
+          <button class="btn" [disabled]="store.role() !== 'pmo'" (click)="forms.assignTeam(s.id)">
+            指定团队</button
+          ><button
+            class="btn small"
+            [disabled]="store.role() !== 'pmo' && store.role() !== 'manager'"
+            (click)="g1()"
+          >
+            查看G1模拟结果
+          </button>
+        </div>
+      </div>
+      @for (member of s.team; track member.id) {
+        <div class="team-member">
+          <span class="avatar">{{ member.person.slice(0, 1) }}</span>
+          <div class="grow">
+            <h3>{{ member.person }} · {{ member.department }}</h3>
+            <p>
+              {{ member.window }}
+              @if (member.confirmed) {
+                · {{ member.confirmedBy }}确认
+              }
+            </p>
+          </div>
+          <app-badge [text]="member.confirmed ? '已确认' : '待确认'" />
+          @if (member.role === store.role()) {
+            <button
+              class="btn small"
+              [disabled]="member.confirmed"
+              (click)="store.confirmTeam(s.id, member.id)"
+            >
+              确认参与
+            </button>
+          } @else {
+            <button class="text-link" (click)="store.setRole(member.role)">切换角色继续</button>
+          }
+        </div>
+      } @empty {
+        <div class="empty">无需普遍强配团队。重点投标可切换负责人指定人员。</div>
+      }
+    </section>
+    <section class="panel space-top padded">
+      <div class="section-heading">
+        <h3>方案与售前交付初判</h3>
+        <button class="btn small" [disabled]="store.role() !== 'pm'" (click)="opinion()">
+          记录交付初判
+        </button>
+      </div>
+      <p style="font-size: 12px">
+        {{ s.deliveryOpinion || '待拟任PM补充，未知事项可以标为待确认。' }}
+      </p>
+      <p class="fine-print">{{ s.resourceWindow || '工期与资源窗口待补' }}</p>
+      <app-documents [entityId]="s.id" [kinds]="['方案报价样例']" title="方案协作资料" />
+    </section>
+  }
+  @if (tab() === '客户角色') {
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>客户角色与决策信息</h2>
+          <p>后续逐步补充，可兼任、可未知，不强制五类齐全。</p>
+        </div>
+        <button class="btn" [disabled]="!store.salesEditable()" (click)="editRole()">
+          <app-icon name="plus" />补充客户角色
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>联系人</th>
+              <th>角色</th>
+              <th>态度</th>
+              <th>影响说明</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of s.customerRoles; track r.id) {
+              <tr>
+                <td>{{ r.contact }}</td>
+                <td>{{ r.role }}</td>
+                <td><app-badge [text]="r.attitude" /></td>
+                <td>{{ r.impact || '待了解' }}</td>
+                <td>
+                  <button
+                    class="text-link"
+                    [disabled]="!store.salesEditable()"
+                    (click)="editRole(r)"
+                  >
+                    编辑</button
+                  ><button
+                    class="icon-btn"
+                    aria-label="删除客户角色"
+                    [disabled]="!store.salesEditable()"
+                    (click)="removeRole(r)"
+                  >
+                    <app-icon name="trash" />
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="empty">暂未补充，当前阶段可继续，不阻断商机推进。</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+  @if (tab() === '商务补充') {
+    <section class="panel padded">
+      <div class="section-heading">
+        <div>
+          <h2>交易条件与财务待确认事项</h2>
+          <p>仅固定案例说明，不进行真实税费自动判断。</p>
+        </div>
+        <button class="btn" [disabled]="!store.salesEditable()" (click)="tax()">
+          查看 / 补充演示案例
+        </button>
+      </div>
+      <div class="grid-2">
+        <div class="source-card">
+          <h3>{{ s.taxCase || '尚未选择交易案例' }}</h3>
+          <p>
+            交易主体：{{ store.customer(s.customerId)?.name }}<br />客户国家：{{
+              store.customer(s.customerId)?.country
+            }}<br />贸易条款：{{ s.tradeTerm || '待确认' }}<br />币种：{{ s.currency }}
+          </p>
+          <app-badge text="规则待财务确认" />
+        </div>
+        <div class="source-card">
+          <h3>财务待确认问题</h3>
+          <p>{{ s.taxNote || '可记录交易主体、运费、清关与开票口径的问题。' }}</p>
+          <p>条件变化后需重新确认。该演示不提供税率、税额或实际开票指令。</p>
+        </div>
+      </div>
+    </section>
+  }
+  @if (tab() === '报价' && s.type === 'opportunity') {
+    <app-quote-workspace [opportunityId]="s.id" />
+  }
+  @if (tab() === '历史') {
+    <section class="panel">
+      <div class="panel-head"><h2>操作历史</h2></div>
+      <div class="timeline">
+        @for (h of store.history(s.id); track h.id) {
+          <div class="timeline-item">
+            <span class="avatar">{{ h.operator.slice(0, 1) }}</span>
+            <div>
+              <h4>{{ h.action }}</h4>
+              <small>{{ h.operator }} · {{ h.date }}</small>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty">当前记录还没有新增操作，保存后将显示。</div>
+        }
+      </div>
+    </section>
+  }
+} @else {
+  <div class="empty">
+    <h2>没有找到这条业务记录</h2>
+    <a class="btn" routerLink="/sales/leads">返回线索列表</a>
+  </div>
+}

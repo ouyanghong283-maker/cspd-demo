@@ -1,0 +1,107 @@
+<div class="page-heading">
+  <div>
+    <h1>演示控制与上手指南</h1>
+    <p>选择角色，从自己的工作开始；案例跳转不会清空你已经填写的内容。</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn" (click)="store.export()"><app-icon name="download" />导出走查数据</button
+    ><button class="btn danger" (click)="reset()"><app-icon name="reset" />重置演示数据</button>
+  </div>
+</div>
+<app-mainline-guide />
+<section class="start-modes" aria-label="选择演示方式">
+  <div class="start-mode main">
+    <div><h2>从头演示</h2><p>从现有线索开始，依次体验需求转商机、销售推进、项目接收和交底审核。当前进度会保留在本地数据里。</p></div>
+    <button class="btn primary" (click)="startMainline()">从第 1 步开始<app-icon name="arrow" /></button>
+  </div>
+  <div class="start-mode">
+    <div><h2>本职练习</h2><p>按当前角色打开一个已准备好的典型任务，适合只练习自己负责的操作。</p></div>
+    <button class="btn" (click)="practiceRole()">练习 {{ store.roleInfo().name }}<app-icon name="arrow" /></button>
+  </div>
+</section>
+<section class="panel section-spacing">
+  <div class="panel-head">
+    <div>
+      <h2>选择你的业务角色</h2>
+      <p>切换只改变操作身份，当前项目和本轮数据保持不变。</p>
+    </div>
+    <app-badge [text]="store.roleInfo().name" />
+  </div>
+  <div class="roles-grid">
+    @for (role of roles; track role.id) {
+      <button
+        class="role-card"
+        [class.active]="store.role() === role.id"
+        (click)="store.setRole(role.id)"
+      >
+        <span class="avatar">{{ role.person.slice(0, 1) }}</span>
+        <div class="grow">
+          <h3>{{ role.name }}</h3>
+          <p>{{ role.description }}</p>
+        </div>
+        @if (store.role() === role.id) {
+          <app-icon name="check" />
+        }
+      </button>
+    }
+  </div>
+</section>
+<div class="section-heading">
+  <h2>从一个真实工作场景开始</h2>
+  <span class="count-label">虚构客户与资料 · 可连续接力</span>
+</div>
+<div class="grid-3 section-spacing">
+  @for (s of scenarios; track s.name) {
+    <section class="panel scenario">
+      <span class="scenario-icon"><app-icon [name]="s.icon" /></span>
+      <h3>{{ s.name }}</h3>
+      <p>{{ s.desc }}</p>
+      <button class="btn small" (click)="start(s.url, s.role, s.tab)">
+        开始这个案例<app-icon name="arrow" />
+      </button>
+    </section>
+  }
+</div>
+<section class="panel section-spacing">
+  <div class="panel-head">
+    <div>
+      <h2>34条业务操作路径</h2>
+      <p>每条路径都对应资料来源、最短操作和可观察结果。</p>
+    </div>
+    <select aria-label="操作路径分类" [(ngModel)]="group">
+      <option value="全部">全部路径</option>
+      <option value="S">销售操作</option>
+      <option value="P">项目操作</option>
+      <option value="U">上手与数据</option>
+    </select>
+  </div>
+  @for (g of rows(); track g.id) {
+    <div class="guide-row">
+      <span class="guide-id">{{ g.id }}</span>
+      <div class="grow">
+        <h3>{{ g.name }}</h3>
+        <p>{{ g.steps }}</p>
+        <p style="color: #a0aabb">{{ g.source }}</p>
+      </div>
+      <button class="btn small" (click)="start(g.url, g.role, g.tab, g.id)">去练习</button>
+    </div>
+  }
+</section>
+<section class="panel control-actions">
+  <div>
+    <h3>保留本轮走查结果</h3>
+    <p>
+      导出业务记录、模拟通知与历史。上传文件内容只保留在本浏览器。<br />重置会清空本轮操作；只是切换角色或案例，无需重置。
+    </p>
+  </div>
+  <button class="btn" (click)="store.export()"><app-icon name="download" />导出JSON数据</button>
+</section>
+<div class="source-card space-top">
+  <h3>来源与演示边界</h3>
+  <p>
+    销售路径依据会议明确收口和现有CRM展示；后续税费诉求只展示固定案例，不实现90%自动判断。指定PM会议文件没有讨论正文，PM路径继承原PRD，待关键用户走查确认。
+  </p>
+  <p>
+    三个月预测权重、30/60天冷却、模板和必填集合均标记为演示假设。不存在真实审批、生产指令、财务写入或多人跨设备协作。
+  </p>
+</div>

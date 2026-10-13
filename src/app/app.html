@@ -1,0 +1,138 @@
+<div class="app-layout">
+  <aside class="sidebar" [class.mobile-open]="mobileMenu()">
+    <a class="brand" routerLink="/" (click)="mobileMenu.set(false)"
+      ><span class="brand-mark"><span></span><span></span><span></span></span>
+      <div><strong>CSPD</strong><small>项目全链条协同平台</small></div></a
+    >
+    <div class="workspace-label">业务演示工作区 <span class="edition">DEMO</span></div>
+    <nav aria-label="主导航">
+      <a
+        routerLink="/"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="mobileMenu.set(false)"
+        ><app-icon name="dashboard" /><span>我的工作</span
+        ><small>{{ store.pendingNotices().length || '' }}</small></a
+      >
+      <div class="nav-group">销售协同</div>
+      <a
+        routerLink="/sales"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="mobileMenu.set(false)"
+        ><app-icon name="trend" /><span>商机看板</span></a
+      >
+      <a routerLink="/sales/leads" routerLinkActive="active" (click)="mobileMenu.set(false)"
+        ><app-icon name="sales" /><span>线索管理</span><small>{{ store.leads().length }}</small></a
+      >
+      <a routerLink="/sales/opportunities" routerLinkActive="active" (click)="mobileMenu.set(false)"
+        ><app-icon name="grid" /><span>商机管理</span></a
+      >
+      <a routerLink="/sales/customers" routerLinkActive="active" (click)="mobileMenu.set(false)"
+        ><app-icon name="users" /><span>客户与联系人</span></a
+      >
+      <div class="nav-group">项目交付</div>
+      <a routerLink="/projects" routerLinkActive="active" (click)="mobileMenu.set(false)"
+        ><app-icon name="project" /><span>项目工作</span></a
+      >
+      <div class="nav-group">演示设置</div>
+      <a routerLink="/control" routerLinkActive="active" (click)="mobileMenu.set(false)"
+        ><app-icon name="control" /><span>演示控制与指南</span></a
+      >
+    </nav>
+    <div class="sidebar-help">
+      <span class="help-icon"><app-icon name="info" /></span><strong>从你的工作开始</strong>
+      <p>选好角色，按照页面提示完成一次业务接力。</p>
+      <a routerLink="/control">查看上手指南 <app-icon name="arrow" /></a>
+    </div>
+    <div class="sidebar-user">
+      <span class="avatar">{{ store.person().slice(0, 1) }}</span>
+      <div>
+        <strong>{{ store.person() }}</strong
+        ><small>{{ store.roleInfo().name }}</small>
+      </div>
+      <a routerLink="/control" class="icon-btn" aria-label="选择角色"
+        ><app-icon name="control"
+      /></a>
+    </div>
+  </aside>
+  @if (mobileMenu()) {
+    <button class="nav-scrim" aria-label="关闭导航" (click)="mobileMenu.set(false)"></button>
+  }
+  <div class="main-layout">
+    <header class="topbar">
+      <div class="top-left">
+        <button
+          class="icon-btn mobile-only"
+          aria-label="展开导航"
+          (click)="mobileMenu.set(!mobileMenu())"
+        >
+          <app-icon name="menu" /></button
+        ><span>CSPD 工作区</span><span class="divider">/</span><strong>{{ title() }}</strong>
+      </div>
+      <div class="top-right">
+        <span class="demo-label"><span></span>业务演示版</span
+        ><span class="base-date"><app-icon name="calendar" />2026-10-10</span
+        ><button
+          class="notification-btn icon-btn"
+          aria-label="查看通知"
+          (click)="notifications.set(!notifications())"
+        >
+          <app-icon name="bell" />
+          @if (unread()) {
+            <i></i>
+          }</button
+        ><select
+          class="role-select"
+          aria-label="当前业务角色"
+          [ngModel]="store.role()"
+          (ngModelChange)="store.setRole($event)"
+        >
+          @for (role of roles; track role.id) {
+            <option [value]="role.id">{{ role.name }}</option>
+          }
+        </select>
+      </div>
+    </header>
+    @if (notifications()) {
+      <section class="notification-popover" aria-label="通知">
+        <div class="section-heading">
+          <h3>我的通知</h3>
+          <button class="icon-btn" aria-label="关闭通知" (click)="notifications.set(false)">
+            <app-icon name="close" />
+          </button>
+        </div>
+        @for (n of store.pendingNotices(); track n.id) {
+          <button class="notice-item" (click)="goNotice(n.entityId, n.id)">
+            <span class="notice-dot" [class.read]="n.read"></span>
+            <div>
+              <strong>{{ n.title }}</strong>
+              <p>{{ n.text }}</p>
+              <small>{{ n.date }} · 站内模拟通知</small>
+            </div>
+            <app-icon name="chevron" />
+          </button>
+        } @empty {
+          <div class="empty">当前角色没有待处理通知</div>
+        }
+      </section>
+    }
+    <main class="page-container">
+      <router-outlet />
+      <div class="footer-note">
+        CSPD 项目全链条协同平台 · 业务演示工作区 · 所有客户、审批及外部系统结果均为演示数据
+      </div>
+    </main>
+  </div>
+</div>
+@if (ui.dialog(); as config) {
+  <app-dialog [config]="config" />
+}
+@if (ui.toast(); as toast) {
+  <div class="toast" [class.error]="toast.error" role="status">
+    <app-icon [name]="toast.error ? 'info' : 'check'" /><span>{{ toast.text }}</span
+    ><button class="icon-btn" aria-label="关闭提示" (click)="ui.toast.set(null)">
+      <app-icon name="close" />
+    </button>
+  </div>
+}

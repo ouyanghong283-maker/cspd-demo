@@ -1,0 +1,161 @@
+<div class="page-heading">
+  <div>
+    <div class="greeting-date">2026年10月10日，星期六</div>
+    <h1>{{ store.person() }}，开始今天的工作</h1>
+    <p>从一个待办开始，让客户信息、项目计划和部门协作在这里接起来。</p>
+  </div>
+  <a class="btn" routerLink="/control"><app-icon name="play" />演示指南</a>
+</div>
+<div class="welcome-strip">
+  <div>
+    <h2>你的角色：{{ store.roleInfo().name }}</h2>
+    <p>
+      {{ store.roleInfo().description }}。<br />这是可操作的业务演示，你的修改会保存在当前浏览器。
+    </p>
+  </div>
+  <div class="header-actions">
+    <div class="welcome-art" aria-hidden="true">
+      <span style="height: 18px"></span><span style="height: 30px"></span
+      ><span style="height: 42px"></span><span style="height: 54px"></span>
+    </div>
+    <div class="start-actions">
+      <button class="btn primary" (click)="startMainline()">从头演示<app-icon name="arrow" /></button>
+      <button class="btn" (click)="practice()">本职练习：{{ store.roleInfo().name }}</button>
+    </div>
+  </div>
+</div>
+<app-mainline-guide />
+<div class="stats-grid">
+  <a class="stat" routerLink="/sales/opportunities"
+    ><div class="stat-top">在途商机<app-icon name="sales" /></div>
+    <div class="stat-number">{{ ongoing().length }}<small>个</small></div>
+    <div class="stat-bottom"><span class="positive">持续跟进</span>覆盖意向沟通至合同谈判</div></a
+  ><a class="stat" routerLink="/projects"
+    ><div class="stat-top">交付项目<app-icon name="project" /></div>
+    <div class="stat-number">{{ store.state().projects.length }}<small>个</small></div>
+    <div class="stat-bottom">计划、资料和状态统一查看</div></a
+  ><a class="stat" routerLink="/sales"
+    ><div class="stat-top">需要客户跟进<app-icon name="clock" /></div>
+    <div class="stat-number">{{ store.cooling().length }}<small>个</small></div>
+    <div class="stat-bottom">
+      <span style="color: var(--amber)">30天及以上未更新</span> · 演示阈值
+    </div></a
+  ><a class="stat" routerLink="/projects/DEMO-P001"
+    ><div class="stat-top">交底未完成事项<app-icon name="file" /></div>
+    <div class="stat-number">{{ store.unclosedConditions() }}<small>项</small></div>
+    <div class="stat-bottom">补充凭据后由PMO确认关闭</div></a
+  >
+</div>
+<div class="workspace-grid">
+  <div>
+    <section class="panel section-spacing">
+      <div class="panel-head">
+        <h2>需要我处理</h2>
+        <span class="count-label">{{ tasks().length }}项</span>
+      </div>
+      @for (task of tasks(); track task.id) {
+        <div class="task-row">
+          <span class="task-symbol" [class.warning]="task.state === '冷却提醒'"
+            ><app-icon [name]="task.icon"
+          /></span>
+          <div class="grow">
+            <h3>{{ task.title }}</h3>
+            <p>{{ task.text }}</p>
+            <div class="time">关联资料与历史记录，可在详情页查看</div>
+          </div>
+          <app-badge [text]="task.state" /><button
+            class="icon-btn"
+            aria-label="去处理待办"
+            (click)="open(task.entityId)"
+          >
+            <app-icon name="arrow" />
+          </button>
+        </div>
+      } @empty {
+        <div class="empty">
+          <app-icon name="check" />
+          <h3>当前角色没有待处理事项</h3>
+          <p>可以从下方快捷入口或“练习我的工作”开始。</p>
+        </div>
+      }
+    </section>
+    <section class="panel section-spacing">
+      <div class="panel-head"><h2>工作快捷入口</h2></div>
+      <div class="quick-actions">
+        <button
+          class="quick-action"
+          style="border-top: 0; border-left: 0; background: white; text-align: left"
+          [disabled]="!store.salesEditable()"
+          (click)="forms.newLead()"
+        >
+          <span><app-icon name="plus" /></span>
+          <div><strong>登记一条新线索</strong><small>从客户信息和需求开始</small></div></button
+        ><a class="quick-action" routerLink="/sales/opportunities"
+          ><span><app-icon name="sales" /></span>
+          <div><strong>推进我的商机</strong><small>信息只填一次，全流程带入</small></div></a
+        ><a class="quick-action" routerLink="/projects"
+          ><span><app-icon name="calendar" /></span>
+          <div><strong>维护项目计划</strong><small>查看节点、责任人和交期</small></div></a
+        ><a class="quick-action" routerLink="/projects/DEMO-P006" [queryParams]="{ tab: '验收' }"
+          ><span><app-icon name="file" /></span>
+          <div><strong>完成验收与移交</strong><small>逐项签认，资料有据可查</small></div></a
+        >
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-head">
+        <h2>近期操作记录</h2>
+        <span class="count-label">真实操作即时记录</span>
+      </div>
+      <div class="timeline">
+        @for (h of store.state().history.slice(-4).reverse(); track h.id) {
+          <div class="timeline-item">
+            <span class="avatar">{{ h.operator.slice(0, 1) }}</span>
+            <div>
+              <h4>{{ h.action }}</h4>
+              <small>{{ h.operator }} · {{ h.date }} · {{ h.entityId }}</small>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+  <div>
+    <section class="panel section-spacing">
+      <div class="panel-head">
+        <h2>项目进展</h2>
+        <a class="heading-link" routerLink="/projects">全部项目</a>
+      </div>
+      @for (p of projectList(); track p.id) {
+        <a class="project-mini" [routerLink]="['/projects', p.id]"
+          ><div>
+            <h3>{{ p.name }}</h3>
+            <app-badge [text]="p.status" />
+          </div>
+          <p>{{ p.pm }} · {{ p.capacity }}{{ p.unit }} · {{ p.id }}</p>
+          <div class="progress-track"><span [style.width.%]="progress(p.id)"></span></div
+        ></a>
+      }
+    </section>
+    <section class="panel section-spacing">
+      <div class="panel-head"><h2>一次业务接力</h2></div>
+      <div class="guide-list">
+        <a routerLink="/sales/detail/DEMO-L001"
+          ><app-icon name="users" /><span>销售登记需求并转商机</span><app-icon name="chevron" /></a
+        ><a routerLink="/sales/detail/DEMO-O002"
+          ><app-icon name="sales" /><span>重点投标团队确认参与</span><app-icon name="chevron" /></a
+        ><a routerLink="/projects/DEMO-P001"
+          ><app-icon name="project" /><span>PM接收项目、维护计划</span
+          ><app-icon name="chevron" /></a
+        ><a routerLink="/projects/DEMO-P007" [queryParams]="{ tab: '移交' }"
+          ><app-icon name="check" /><span>接收方确认移交资料</span><app-icon name="chevron"
+        /></a>
+      </div>
+    </section>
+    <div class="source-card">
+      <h3>演示边界</h3>
+      <p>审批、生产计划和财务结果有明确的模拟来源标识。角色切换不会清除已填写数据。</p>
+      <a class="text-link" routerLink="/control">查看34条操作路径</a>
+    </div>
+  </div>
+</div>

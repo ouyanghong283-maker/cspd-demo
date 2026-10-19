@@ -1,0 +1,307 @@
+@if (project(); as p) {
+  <div class="delivery-toolbar">
+    <nav class="delivery-tabs" aria-label="项目交付详情页签">
+      <button
+        type="button"
+        [class.active]="tab() === 'logistics'"
+        [attr.aria-pressed]="tab() === 'logistics'"
+        (click)="selectTab('logistics')"
+      >
+        物流与现场
+      </button>
+      <button
+        type="button"
+        [class.active]="tab() === 'service'"
+        [attr.aria-pressed]="tab() === 'service'"
+        (click)="selectTab('service')"
+      >
+        运维与售后
+      </button>
+    </nav>
+    <span class="demo-note">本地演示记录</span>
+  </div>
+  @if (tab() === 'logistics') {
+    <section class="delivery-section" aria-labelledby="logistics-heading">
+      <header class="section-header">
+        <div>
+          <h2 id="logistics-heading">物流与现场</h2>
+          <p>统筹发运、备件与出厂验收，跟进交付节点。</p>
+        </div>
+        <a
+          class="btn primary"
+          [routerLink]="['/projects', p.id]"
+          [queryParams]="actionParams('plans')"
+          queryParamsHandling="merge"
+          [preserveFragment]="true"
+          >维护计划与发运备件</a
+        >
+      </header>
+      <dl class="site-summary">
+        <div>
+          <dt>项目现场</dt>
+          <dd>{{ value(p.site) }}</dd>
+        </div>
+        <div>
+          <dt>现场条件</dt>
+          <dd>{{ value(p.siteConditions) }}</dd>
+        </div>
+      </dl>
+      <div class="table-caption">
+        <h3>
+          交付节点计划 <span class="count">{{ logisticsPlans().length }} 项</span>
+        </h3>
+        <p>计划用于承诺 · 预计用于预测 · 实际引用已保存记录</p>
+      </div>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="交付节点计划表，可横向滚动">
+        <table>
+          <thead>
+            <tr>
+              <th>节点 / 类型</th>
+              <th>计划开始 / 结束</th>
+              <th>预计日期</th>
+              <th>实际日期 / 来源</th>
+              <th>状态 / 结果</th>
+              <th>批次 / 产品 / 数量</th>
+              <th>接收人 / 备注</th>
+              <th>记录来源</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (plan of logisticsPlans(); track plan.id) {
+              <tr>
+                <td>
+                  <strong class="node-name">{{ value(plan.name) }}</strong>
+                  <p>{{ plan.type }} · {{ plan.id }}</p>
+                </td>
+                <td class="date-cell">
+                  <span>{{ value(plan.start) }}</span
+                  ><span class="date-end">至 {{ value(plan.end) }}</span>
+                </td>
+                <td class="date-cell">{{ value(plan.expected) }}</td>
+                <td>
+                  {{ value(plan.actual) }}
+                  <p>{{ value(plan.actualSourceReference) }}</p>
+                </td>
+                <td>
+                  <span class="record-status">{{ value(plan.status) }}</span>
+                  <p>{{ value(plan.result) }}</p>
+                </td>
+                <td>
+                  {{ value(plan.batch) }} / {{ value(plan.product) }} /
+                  {{ plan.quantity == null || plan.quantity <= 0 ? '待提供' : plan.quantity }}
+                </td>
+                <td>
+                  {{ value(plan.receiver) }}
+                  <p>{{ value(plan.note) }}</p>
+                </td>
+                <td>
+                  {{ value(plan.sourceStatus) }} ·
+                  {{ value(plan.sourceReference || plan.sourceDetail) }}
+                  <p>更新：{{ value(plan.sourceUpdatedAt) }}</p>
+                  <p>关联：{{ value(plan.linked) }}</p>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="8">物流、发运、调试备件与FAT计划待提供</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <footer class="section-footer">
+        <p>
+          询船、SN、实际到货及安装信息：{{
+            p.equipmentSerialRecords?.length
+              ? '见项目执行记录中的设备序列号记录'
+              : '待提供；无外部物流来源'
+          }}
+        </p>
+        <a
+          class="text-link"
+          [routerLink]="['/projects', p.id]"
+          [queryParams]="actionParams('delivery', '执行记录')"
+          queryParamsHandling="merge"
+          [preserveFragment]="true"
+          >查看设备与执行原记录 <span aria-hidden="true">↗</span></a
+        >
+      </footer>
+    </section>
+    <div class="delivery-bottom-grid">
+      <section class="delivery-section acceptance-section" aria-labelledby="acceptance-heading">
+        <header class="section-header">
+          <div>
+            <h2 id="acceptance-heading">客户验收</h2>
+            <p>核对现场测试、验收结果与客户签字凭据。</p>
+          </div>
+          <a
+            class="btn"
+            [routerLink]="['/projects', p.id]"
+            [queryParams]="actionParams('acceptance')"
+            queryParamsHandling="merge"
+            [preserveFragment]="true"
+            >处理SAT与客户验收</a
+          >
+        </header>
+        <dl class="acceptance-summary">
+          <div>
+            <dt>SAT实际日期</dt>
+            <dd>{{ value(p.sat?.date) }}</dd>
+          </div>
+          <div>
+            <dt>SAT结果</dt>
+            <dd>
+              {{ value(p.sat?.result)
+              }}<small>{{
+                p.sat?.complete === true
+                  ? '已完成'
+                  : p.sat?.complete === false
+                    ? '未完成'
+                    : '待提供'
+              }}</small>
+            </dd>
+          </div>
+          <div>
+            <dt>验收结论</dt>
+            <dd>
+              {{
+                p.acceptanceComplete === true
+                  ? '已完成'
+                  : p.acceptanceComplete === false
+                    ? '未完成'
+                    : '待提供'
+              }}
+            </dd>
+          </div>
+        </dl>
+        <div class="acceptance-list">
+          @for (item of p.acceptance || []; track item.id) {
+            <div class="acceptance-item">
+              <div class="acceptance-item-heading">
+                <h3>{{ item.name }}</h3>
+                <span class="record-status">{{ value(item.result) }}</span>
+              </div>
+              <p>
+                签署人 {{ value(item.signer) }}<span>实际日期 {{ value(item.date) }}</span>
+              </p>
+              @if (item.note) {
+                <p class="item-note">{{ value(item.note) }}</p>
+              }
+            </div>
+          } @empty {
+            <p class="empty-copy">客户验收记录待提供</p>
+          }
+        </div>
+      </section>
+      <section class="delivery-section handover-section" aria-labelledby="handover-heading">
+        <header class="section-header">
+          <div>
+            <h2 id="handover-heading">内部移交摘要</h2>
+            <p>交付完成后，衔接运维与售后。</p>
+          </div>
+        </header>
+        <dl class="handover-summary">
+          <div>
+            <dt>移交状态</dt>
+            <dd>
+              <span class="record-status">{{ value(p.handover?.status) }}</span>
+            </dd>
+          </div>
+          <div>
+            <dt>接收方</dt>
+            <dd>{{ value(p.handover?.receiver) }}</dd>
+          </div>
+        </dl>
+        <div class="handover-action">
+          <a
+            class="btn"
+            [routerLink]="['/projects', p.id]"
+            [queryParams]="actionParams('acceptance', '移交')"
+            queryParamsHandling="merge"
+            [preserveFragment]="true"
+            >准备内部移交</a
+          >
+        </div>
+      </section>
+    </div>
+    <section class="delivery-section documents-section" aria-label="客户签字验收凭据">
+      <app-documents
+        [entityId]="p.id"
+        [kinds]="['客户签字清单']"
+        title="客户签字验收凭据（项目原记录）"
+      />
+    </section>
+  } @else {
+    <section class="delivery-section service-section">
+      <h2>运维与售后</h2>
+      <p>
+        接收状态：{{ value(p.handover?.status) }} · 接收方：{{ value(p.handover?.receiver) }} ·
+        意见：{{ value(p.handover?.opinion) }}
+      </p>
+      <h3>成交服务承诺与采用版本</h3>
+      <p>
+        来源合同：{{ value(p.contractId) }} · 服务快照采用报价版本：{{
+          value(contract()?.serviceSnapshot?.quoteVersionId)
+        }}
+      </p>
+      <p>质保：{{ value(contract()?.serviceSnapshot?.warranty) }}</p>
+      <p>SLA：{{ value(contract()?.serviceSnapshot?.sla) }}</p>
+      <p>服务范围：{{ value(contract()?.serviceSnapshot?.scope) }}</p>
+      <p>
+        合同补充约定：{{ value(contract()?.service) }} · 合同质保：{{ value(contract()?.warranty) }}
+      </p>
+      <p>服务快照缺失时显示待提供；当前最新报价不替代成交时采用的版本。</p>
+      <h3>备件接续</h3>
+      @for (plan of sparePlans(); track plan.id) {
+        <p>
+          {{ plan.name }} · {{ value(plan.status) }} · 接收人 {{ value(plan.receiver) }} · 批次
+          {{ value(plan.batch) }} · 计划 {{ value(plan.end) }} / 预计 {{ value(plan.expected) }} /
+          实际 {{ value(plan.actual) }} · {{ value(plan.note) }} · 来源
+          {{ value(plan.sourceReference) }}
+        </p>
+      } @empty {
+        <p>备件记录待提供</p>
+      }
+      <h3>移交资料与遗留事项</h3>
+      @for (category of p.handover?.categories || []; track $index) {
+        <p>{{ category.name }}：{{ value(category.status) }} · {{ value(category.note) }}</p>
+      } @empty {
+        <p>移交资料待提供</p>
+      }
+      @if (p.handover?.issues; as issues) {
+        @for (issue of issues; track issue.id) {
+          <p>
+            {{ issue.text }} · 责任人 {{ value(issue.owner) }} · 计划处理日
+            {{ value(issue.due) }}
+          </p>
+        } @empty {
+          <p>现有移交记录无遗留事项</p>
+        }
+      } @else {
+        <p>遗留事项待提供</p>
+      }
+      <a
+        class="btn"
+        [routerLink]="['/projects', p.id]"
+        [queryParams]="actionParams('acceptance', '移交')"
+        queryParamsHandling="merge"
+        [preserveFragment]="true"
+        >准备移交 / 接收 / 退回</a
+      >
+    </section>
+  }
+  <section class="delivery-section history-section">
+    <h2>交付与售后历史</h2>
+    @for (event of history(); track event.id) {
+      <div class="history-item">
+        <time>{{ event.occurredAt }}</time
+        ><strong>{{ event.action }}</strong
+        ><span>{{ event.operator }}</span>
+      </div>
+    } @empty {
+      <p>尚无已记录操作；查看资料不会产生接收、验收或移交事实。</p>
+    }
+  </section>
+} @else {
+  <section class="empty-state">找不到项目 {{ projectId() }}</section>
+}

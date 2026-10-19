@@ -10,17 +10,27 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { DemoStore } from '../core/store';
+import { ROUGH_PLAN_TEMPLATES } from '../core/rough-plan-templates';
+import { personField } from '../core/personnel';
 import { BusinessForms } from '../core/forms';
-import { CustomerRole, ROLES, SalesRecord, STAGES } from '../core/models';
+import {
+  CustomerRole,
+  OpportunityRoughPlan,
+  ProductNeed,
+  ROLES,
+  SalesRecord,
+  STAGES,
+} from '../core/models';
 import { newId } from '../core/seed';
+import { productCatalogItem, selectableProducts } from '../core/product-catalog';
 import { needsTenderTeam } from '../core/rules';
 import { Icon } from '../shared/icon';
 import { Badge } from '../shared/badge';
 import { Documents } from '../shared/documents';
+import { SolutionService } from './solution-service';
 import { QuoteWorkspace } from './quote-workspace';
-import { MainlineGuide } from './mainline-guide';
 @Component({
-  imports: [RouterLink, Icon, Badge, Documents, QuoteWorkspace, MainlineGuide],
+  imports: [RouterLink, Icon, Badge, Documents, QuoteWorkspace, SolutionService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sales-detail.html',
   styles: `
@@ -124,6 +134,28 @@ import { MainlineGuide } from './mainline-guide';
       line-height: 1.8;
       margin-bottom: 12px;
     }
+    .gate-missing {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+      margin: 0 0 16px;
+      padding: 12px 14px;
+      border: 1px solid #f1a19a;
+      border-left: 4px solid #d92d20;
+      border-radius: 7px;
+      background: #fff8f7;
+      color: #9d2018;
+      font-size: 12px;
+    }
+    .gate-missing span {
+      display: inline-flex;
+      border: 1px solid #d92d20;
+      border-radius: 5px;
+      background: #fff1f0;
+      padding: 4px 7px;
+      font-weight: 600;
+    }
     @media (max-width: 1000px) {
       .detail-layout {
         grid-template-columns: 1fr;
@@ -137,28 +169,200 @@ export class SalesDetail {
   route = inject(ActivatedRoute);
   router = inject(Router);
   id = toSignal(this.route.paramMap.pipe(map((p) => p.get('id') || '')), { initialValue: '' });
+  returnTo = toSignal(
+    this.route.queryParamMap.pipe(
+      map((params) => {
+        const value = params.get('returnTo') || '';
+        return /^(?:\/sales\/(?:departments|opportunities)|\/projects\/board)(\?|$)/.test(value) ? value : '';
+      }),
+    ),
+    { initialValue: '' },
+  );
+  returnLabel = toSignal(this.route.queryParamMap.pipe(map(params => params.get('returnLabel') || '返回部门记录')), {initialValue:'返回部门记录'});
   record = computed(() => this.store.sale(this.id()));
   tab = signal('概览');
   guideMode = signal(false);
   tabs = computed(() =>
     this.record()?.type === 'lead'
       ? ['概览', '沟通', '资料', '历史']
-      : ['概览', '沟通', '资料', ...(this.store.sale(this.id())?.quoteFlowMode === 'v2' || (this.store.sale(this.id())?.stage && this.store.sale(this.id())?.stage !== '意向沟通') ? ['报价'] : []), '团队', '客户角色', '商务补充', '历史'],
+      : [
+          '概览',
+          '沟通',
+          '资料',
+          ...(this.store.sale(this.id())?.quoteFlowMode === 'v2' ||
+          (this.store.sale(this.id())?.stage && this.store.sale(this.id())?.stage !== '意向沟通')
+            ? ['报价']
+            : []),
+          '方案',
+          '服务条件',
+          '团队',
+          '客户角色',
+          '商务补充',
+          '历史',
+        ],
   );
   stages = STAGES;
   roles = ROLES;
+  operationValue(value: unknown): string {
+    return typeof value === 'string' ? value : JSON.stringify(value);
+  }
   constructor() {
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((p) => {
       if (p.get('tab')) this.tab.set(p.get('tab')!);
+      else if (this.route.snapshot.data['defaultTab'])
+        this.tab.set(this.route.snapshot.data['defaultTab']);
       this.guideMode.set(p.get('guide') === 'mainline');
     });
     effect(() => {
       this.id();
-      this.tab.set(this.route.snapshot.queryParamMap.get('tab') || '概览');
+      this.tab.set(
+        this.route.snapshot.queryParamMap.get('tab') ||
+          this.route.snapshot.data['defaultTab'] ||
+          '概览',
+      );
     });
   }
   needsTeam = () => (this.record() ? needsTenderTeam(this.record()!) : false);
+  isSolutionEntry = () => this.route.snapshot.data['defaultTab'] === '方案';
   stageIndex = () => (this.record() ? STAGES.indexOf(this.record()!.stage) : 0);
+  editRoughPlan(existing?: OpportunityRoughPlan): void {
+    if (!this.store.installRoughPlanTemplates(ROUGH_PLAN_TEMPLATES)) return;
+    const item: OpportunityRoughPlan = existing || {
+      id: newId('OPP-PLAN'),
+      wbsCode: '',
+      name: '',
+      owner: '王项目',
+      start: '2026-10-12',
+      end: '2026-10-20',
+      predecessor: '',
+      relationNote: '',
+      note: '',
+      weekWindow: '',
+      sourceReference: '',
+      sourceType: undefined,
+      sourceTemplateId: '',
+      sourceTemplateTaskId: '',
+      sourceDetail: '',
+    };
+    const planTemplates = this.store.state().roughPlanTemplates || [];
+    this.store.ui.open({
+      title: existing ? '编辑商机粗计划' : '新增商机粗计划',
+      description: '仅记录离线计划模板字段。复制到项目后按独立项目计划维护，不回写商机。',
+      fields: [
+        { key: 'wbsCode', label: 'WBS编号', value: item.wbsCode || '' },
+        { key: 'name', label: '任务名称', required: true, value: item.name },
+        personField('owner', '负责人', item.owner, true),
+        { key: 'start', label: '计划开始日期', type: 'date', required: true, value: item.start },
+        { key: 'end', label: '计划结束日期', type: 'date', required: true, value: item.end },
+        {
+          key: 'durationDays',
+          label: '计划天数',
+          type: 'number',
+          min: 0,
+          value: item.durationDays ?? '',
+        },
+        { key: 'predecessor', label: '前置任务', value: item.predecessor },
+        { key: 'relationNote', label: '关系说明', type: 'textarea', value: item.relationNote },
+        { key: 'note', label: '备注', type: 'textarea', value: item.note },
+        { key: 'weekWindow', label: '周窗口', value: item.weekWindow },
+        {
+          key: 'sourceType',
+          label: '任务来源',
+          type: 'select',
+          required: true,
+          options: ['自行制定', '参考模板', '客户要求'],
+          value: item.sourceType || '',
+        },
+        {
+          key: 'sourceTemplateId',
+          label: '关联计划模板（选择“参考模板”时必填）',
+          type: 'select',
+          requiredWhen: { field: 'sourceType', equals: '参考模板' },
+          optionsOnly: true,
+          dependsOn: 'sourceType',
+          optionsByValue: {
+            参考模板: [
+              ...planTemplates
+                .filter((template) => template.status === '启用')
+                .map((template) => ({ value: template.id, label: template.name })),
+            ],
+          },
+          hint: '选择模板后，再选具体任务；任务字段会带入表单，日期和负责人请按当前项目确认。',
+          value: item.sourceTemplateId || '',
+        },
+        {
+          key: 'sourceTemplateTaskId',
+          label: '模板任务（选择“参考模板”时必填）',
+          type: 'select',
+          requiredWhen: { field: 'sourceType', equals: '参考模板' },
+          optionsOnly: true,
+          dependsOn: 'sourceTemplateId',
+          optionsByValue: Object.fromEntries(planTemplates.map((template) => [
+            template.id,
+            template.tasks.map((task) => ({
+              value: task.id,
+              label: `${task.wbsCode} · ${task.name}${task.referenceOwner ? `（原表负责人：${task.referenceOwner}）` : ''}`,
+            })),
+          ])),
+          populateConfirm: true,
+          populateFieldsByValue: Object.fromEntries(planTemplates.flatMap((template) =>
+            template.tasks.map((task) => [task.id, {
+              wbsCode: task.wbsCode,
+              name: task.name,
+              durationDays: task.durationDays === undefined ? '' : String(task.durationDays),
+              predecessor: task.predecessor,
+              relationNote: task.relationNote,
+              note: task.note,
+            }]),
+          )),
+          hint: '原表负责人只作参考；WBS、任务、天数、前置和说明可继续修改。',
+          value: item.sourceTemplateTaskId || '',
+        },
+        {
+          key: 'sourceDetail',
+          label: '来源说明（客户要求时必填）',
+          type: 'textarea',
+          requiredWhen: { field: 'sourceType', equals: '客户要求' },
+          value: item.sourceDetail || (item.sourceType ? '' : item.sourceReference || ''),
+        },
+      ],
+      sample: {
+        wbsCode: '1.1',
+        name: 'OA订单启动（创建成品料号） Order Launch (Create Part No.)',
+        owner: '王项目',
+        start: '2026-10-12',
+        end: '2026-10-20',
+        durationDays: 3,
+        relationNote: '需求评审',
+        sourceType: '参考模板',
+        sourceTemplateId: 'DEMO-RPT-STANDARD',
+        sourceTemplateTaskId: 'DEMO-RPT-STANDARD-1-1',
+      },
+      onSave: (data) =>
+        this.store.saveOpportunityRoughPlan(this.id(), {
+          ...item,
+          wbsCode: data['wbsCode'],
+          name: data['name'],
+          owner: data['owner'],
+          start: data['start'],
+          end: data['end'],
+          durationDays: data['durationDays']?.trim() ? Number(data['durationDays']) : undefined,
+          predecessor: data['predecessor'],
+          relationNote: data['relationNote'],
+          note: data['note'],
+          weekWindow: data['weekWindow'],
+          sourceType: data['sourceType'] as OpportunityRoughPlan['sourceType'],
+          sourceTemplateId: data['sourceTemplateId'],
+          sourceTemplateTaskId: data['sourceTemplateTaskId'],
+          sourceDetail: data['sourceDetail'],
+          sourceReference: data['sourceType'] === '参考模板'
+            ? `计划模板：${planTemplates.find((template) => template.id === data['sourceTemplateId'])?.name || ''} · ${planTemplates.find((template) => template.id === data['sourceTemplateId'])?.tasks.find((task) => task.id === data['sourceTemplateTaskId'])?.wbsCode || ''} ${planTemplates.find((template) => template.id === data['sourceTemplateId'])?.tasks.find((task) => task.id === data['sourceTemplateTaskId'])?.name || ''}`
+            : data['sourceType'] === '客户要求'
+              ? `客户要求：${data['sourceDetail']}`
+              : `自行制定${data['sourceDetail'] ? `：${data['sourceDetail']}` : ''}`,
+        }),
+    });
+  }
   confirmCount = () => this.record()?.team.filter((t) => t.confirmed).length || 0;
   nextAction(): string {
     const s = this.record();
@@ -168,10 +372,18 @@ export class SalesDetail {
     if (s.stage === '赢单') return '加载演示合同，交接项目给PM';
     if (s.stage === '丢单') return '商机已关闭，可在看板查看原因';
     if (s.quoteFlowMode === 'v2' && s.stage === '方案报价') {
+      if (!this.store.solution(s.id)?.latestVersionId) return '由解决方案交付核心技术方案首版';
+      const next = this.store.solutionNextStep(s.id);
+      if (next.missing.length) return next.label;
       const series = this.store.quoteSeries(s.id);
-      return series ? `报价下一步：${series.versions.at(-1)?.status || '查看报价'}` : '进入报价工作区，创建报价V1草稿';
+      return series
+        ? `报价下一步：${series.versions.at(-1)?.status || '查看报价'}`
+        : '进入报价工作区，创建报价V1草稿';
     }
-    if (s.quoteFlowMode === 'v2' && s.stage === '洽谈') return this.store.quoteSeries(s.id)?.activeFinalVersionId ? '记录当前客户沟通并准备合同谈判' : '完成报价客户确认并锁定最终版本';
+    if (s.quoteFlowMode === 'v2' && s.stage === '洽谈')
+      return this.store.quoteSeries(s.id)?.activeFinalVersionId
+        ? '记录当前客户沟通并准备合同谈判'
+        : '完成报价客户确认并锁定最终版本';
     if (this.needsTeam() && s.team.some((t) => !t.confirmed))
       return '由负责人指定团队，成员确认参与';
     return s.stage === '意向沟通'
@@ -179,29 +391,261 @@ export class SalesDetail {
       : '保存本轮客户沟通，再完成当前阶段';
   }
   leadMissing(): string[] {
-    const s = this.record(); if (!s || s.type !== 'lead') return [];
+    const s = this.record();
+    if (!s || s.type !== 'lead') return [];
     const c = this.store.contact(s);
-    return [!this.store.has(s.id, '需求导入表') ? '需求导入表' : '', !c?.name ? '主要联系人' : '', !(c?.email || c?.phone) ? '联系人联系方式' : '', !s.owner ? '销售负责人' : ''].filter(Boolean);
+    return [
+      !this.store.has(s.id, '需求导入表') ? '需求导入表' : '',
+      !c?.name ? '主要联系人' : '',
+      !(c?.email || c?.phone) ? '联系人联系方式' : '',
+    ].filter(Boolean);
+  }
+  possibleLeadMatches(): SalesRecord[] {
+    const lead = this.record();
+    if (!lead || lead.type !== 'lead' || lead.convertedTo) return [];
+    const project = this.normalizedMatchText(lead.projectName);
+    return this.store.leads().filter((candidate) => {
+      if (candidate.id === lead.id || candidate.convertedTo) return false;
+      const sameCustomer = candidate.customerId === lead.customerId;
+      const candidateProject = this.normalizedMatchText(candidate.projectName);
+      const sameProject =
+        !!project &&
+        (!candidateProject ||
+          project === candidateProject ||
+          (Math.min(project.length, candidateProject.length) >= 4 &&
+            (project.includes(candidateProject) || candidateProject.includes(project))));
+      return sameCustomer || sameProject;
+    });
+  }
+  leadMatchBasis(candidate: SalesRecord): string {
+    const current = this.record();
+    const sameCustomer = current?.customerId === candidate.customerId;
+    const sameProject =
+      current?.projectName &&
+      this.normalizedMatchText(current.projectName) ===
+        this.normalizedMatchText(candidate.projectName);
+    if (sameCustomer && sameProject) return '客户ID相同、项目名称相同';
+    if (sameCustomer) return '客户ID相同、项目名称待核对';
+    return '项目名称相近、客户ID不同，请核对客户及归属';
+  }
+  private normalizedMatchText(value: string): string {
+    return value
+      .trim()
+      .toLocaleLowerCase()
+      .replace(/[\s\p{P}\p{S}]/gu, '');
+  }
+  assignPM(sale: SalesRecord): void {
+    const candidates = ROLES.filter((role) => role.id === 'pm');
+    this.store.ui.open({
+      title: 'PMO手动指定PM',
+      description: '模拟人员和排期窗口由PMO手动选择；不自动匹配、不锁定或承诺真实资源。',
+      fields: [
+        {
+          key: 'pmId',
+          label: '模拟PM名单',
+          type: 'select',
+          required: true,
+          options: candidates.map((candidate) => ({
+            value: candidate.id,
+            label: candidate.person,
+          })),
+          value: sale.pmoAssignment?.pmId || candidates[0]?.id || '',
+        },
+        {
+          key: 'window',
+          label: '模拟排期窗口',
+          required: true,
+          value: sale.pmoAssignment?.window || '2026-10-20 至 2026-11-15（模拟）',
+        },
+      ],
+      onSave: (data) => {
+        const selected = candidates.find((candidate) => candidate.id === data['pmId']);
+        return selected
+          ? this.store.assignOpportunityPM(sale.id, selected.id, selected.person, data['window'])
+          : this.store.ui.fail('请选择模拟PM名单中的人员');
+      },
+    });
+  }
+  completeDepartmentTask(sale: SalesRecord, taskId: string): void {
+    this.store.completeDepartmentTask(sale.id, taskId);
   }
   locateLeadItem(item: string): void {
-    if (item === '需求导入表') this.tab.set('资料'); else this.forms.editSales(this.record()!);
+    if (item === '需求导入表') this.tab.set('资料');
+    else this.forms.editSales(this.record()!);
+  }
+  returnToDepartmentRecords(): void {
+    const target = this.returnTo();
+    if (target) void this.router.navigateByUrl(target);
+    else void this.router.navigate(['/sales/departments']);
   }
   convert(): void {
     const id = this.store.convert(this.id());
     if (id) {
       this.tab.set('概览');
-      this.router.navigate(['/sales/detail', id], { queryParams: this.guideMode() ? { tab: '概览', guide: 'mainline' } : undefined });
+      this.router.navigate(['/sales/detail', id], {
+        queryParams: this.guideMode() ? { tab: '概览', guide: 'mainline' } : undefined,
+      });
     }
+  }
+  convertCustomer(): void {
+    const id = this.store.convertToCustomer(this.id());
+    if (id)
+      this.router.navigate(['/sales/customers'], {
+        queryParams: { customer: id, fromLead: this.id() },
+      });
+  }
+  editProductNeed(existing?: ProductNeed): void {
+    const sale = this.record();
+    if (!sale || sale.type !== 'opportunity') return;
+    const catalogOptions = selectableProducts().map((item) => ({
+      value: item.code,
+      label: `${item.code} · ${item.name}（${item.type}）`,
+    }));
+    const existingItem = existing ? productCatalogItem(existing.model) : undefined;
+    if (existing && (!existingItem || existingItem.status !== '上架'))
+      catalogOptions.push({
+        value: existing.model,
+        label: `${existing.model}（${existingItem ? '已下架' : '目录外历史编码'}）`,
+      });
+    this.store.ui.open({
+      title: existing ? '编辑产品需求' : '新增产品需求',
+      description:
+        '产品编码从产品目录（模拟数据，结构按非标CRM产品管理表口径）选择，仅列出上架产品，自动带出产品名称；行ID用于稳定关联，编码、数量或单位变化都会使旧技术初判过期。',
+      fields: [
+        {
+          key: 'model',
+          label: '产品编码',
+          type: 'select',
+          required: true,
+          options: catalogOptions,
+          value: existing?.model || '',
+          hint: '选择后自动带出产品名称；下架产品不可选',
+        },
+        {
+          key: 'quantity',
+          label: '数量',
+          type: 'number',
+          required: true,
+          min: 1,
+          value: existing?.quantity || 1,
+        },
+        {
+          key: 'unit',
+          label: '单位',
+          required: true,
+          value: existing?.unit || '台',
+          hint: '非标CRM产品主数据不含单位，按行手工填写',
+        },
+      ],
+      onSave: (data) => {
+        const item = productCatalogItem(data['model'].trim());
+        return this.store.saveProductNeed(sale.id, {
+          id: existing?.id || newId('NEED'),
+          model: data['model'].trim(),
+          name: item?.name || (existing?.model === data['model'].trim() ? existing?.name : ''),
+          quantity: Number(data['quantity']),
+          unit: data['unit'].trim(),
+        });
+      },
+    });
+  }
+  assessTechnical(): void {
+    const sale = this.record();
+    if (!sale || sale.type !== 'opportunity') return;
+    if (!this.store.ensureTechnicalDemoFiles(sale.id)) return;
+    const evidence = this.store.quoteSourceCandidates(sale.id);
+    const evidenceKinds = ['需求导入表', '核心技术方案', 'BOM清单', '单线图（SLD）', '衰减曲线'];
+    this.store.ui.open({
+      title: '记录技术初判',
+      description:
+        '结论绑定当前需求修订和适用证据。满足结论需引用Technical Proposal、BOM、SLD和衰减资料；资料待补时选择“待补资料”。',
+      fields: [
+        personField(
+          'owner',
+          '初判负责人',
+          this.store.person() === '周方案' || this.store.person() === '王项目'
+            ? this.store.person()
+            : '周方案',
+          true,
+          ['周方案', '王项目'],
+        ),
+        {
+          key: 'result',
+          label: '初判结论',
+          type: 'select',
+          required: true,
+          options: ['满足', '不满足', '待补资料'],
+          value: '待补资料',
+        },
+        ...evidenceKinds.map((kind) => ({
+          key: `evidence-${kind}`,
+          label: `${kind}证据引用`,
+          type: 'select' as const,
+          required: ['BOM清单', '单线图（SLD）', '衰减曲线'].includes(kind),
+          group: ['BOM清单', '单线图（SLD）', '衰减曲线'].includes(kind) ? 'proposal' : undefined,
+          options: [
+            { value: '', label: '待补充 / 不引用' },
+            ...evidence
+              .filter((item) => item.kind === kind)
+              .map((item) => ({ value: item.id, label: `${item.kind} · ${item.name}` })),
+          ],
+          value: '',
+        })),
+        { key: 'opinion', label: '结论说明', type: 'textarea', required: true, value: '' },
+      ],
+      onSave: (data) =>
+        this.store.saveTechnicalAssessment(sale.id, {
+          owner: data['owner'],
+          result: data['result'] as '满足' | '不满足' | '待补资料',
+          evidenceAttachmentIds: evidenceKinds
+            .map((kind) => data[`evidence-${kind}`])
+            .filter((id) => !!id),
+          opinion: data['opinion'],
+        }),
+    });
+  }
+  confirmCustomerCountryChange(): void {
+    this.store.confirmCustomerCountryChange(this.id());
+  }
+  createOpportunityAfterAssessment(): void {
+    const id = this.store.createOpportunityAfterAssessment(this.id());
+    if (id) this.router.navigate(['/sales/detail', id]);
   }
   bridge(): void {
     const id = this.store.bridge(this.id());
-    if (id) this.router.navigate(['/projects', id], { queryParams: this.guideMode() ? { tab: '概览', guide: 'mainline' } : undefined });
+    if (id)
+      this.router.navigate(['/projects', id], {
+        queryParams: this.guideMode() ? { tab: '概览', guide: 'mainline' } : undefined,
+      });
   }
   associateDraft(): void {
-    const opportunity = this.record(); if (!opportunity) return;
+    const opportunity = this.record();
+    if (!opportunity) return;
     const drafts = this.store.state().projects.filter((p) => !p.opportunityId && !p.contractId);
-    if (!drafts.length) { this.store.ui.fail('当前没有待关联的项目草稿，请先到项目工作创建项目号'); return; }
-    this.store.ui.open({ title: '关联已有项目草稿', description: '项目号保持不变；赢单后再加载合同/G3模拟来源。', submitLabel: '确认关联', fields: [{ key: 'project', label: '项目草稿', type: 'select', options: drafts.map((p) => `${p.id} · ${p.name}`), required: true }], onSave: (d) => { const id = String(d['project']).split(' · ')[0]; const ok = this.store.associateProject(id, opportunity.id); if (ok) this.router.navigate(['/projects', id]); return ok; } });
+    if (!drafts.length) {
+      this.store.ui.fail('当前没有待关联的项目草稿，请先到项目工作创建项目号');
+      return;
+    }
+    this.store.ui.open({
+      title: '关联已有项目草稿',
+      description: '项目号保持不变；赢单后再加载合同/G3模拟来源。',
+      submitLabel: '确认关联',
+      fields: [
+        {
+          key: 'project',
+          label: '项目草稿',
+          type: 'select',
+          options: drafts.map((p) => `${p.id} · ${p.name}`),
+          required: true,
+        },
+      ],
+      onSave: (d) => {
+        const id = String(d['project']).split(' · ')[0];
+        const ok = this.store.associateProject(id, opportunity.id);
+        if (ok) this.router.navigate(['/projects', id]);
+        return ok;
+      },
+    });
   }
   archive(status: string): void {
     this.store.ui.open({
@@ -218,10 +662,10 @@ export class SalesDetail {
         {
           key: 'reason',
           label: '原因',
-          type: 'select',
-          options: ['重复', '虚假', '无预算', '客户暂缓', '重新跟进'],
+          type: 'textarea',
+          hint: '原因选项尚未按CRM/CSPD标准核实；请先用文字记录，不使用未核验枚举。',
           required: status !== '待跟进',
-          value: status === '待跟进' ? '重新跟进' : '',
+          value: '',
         },
       ],
       onSave: (d) => this.store.archive(this.id(), d['status'], d['reason']),
@@ -277,29 +721,6 @@ export class SalesDetail {
     if (window.confirm('确定删除该客户角色记录吗？'))
       this.store.saveCustomerRole(this.id(), item, true);
   }
-  g1(): void {
-    this.store.ui.open({
-      title: '查看G1模拟结果',
-      description: '模拟展示审批意见，不触发正式审批或资源批准。',
-      fields: [
-        {
-          key: 'result',
-          label: '模拟结果',
-          type: 'select',
-          options: ['通过', '挂起', '降级'],
-          value: '通过',
-          required: true,
-        },
-        {
-          key: 'opinion',
-          label: '处理意见',
-          type: 'textarea',
-          value: '演示资料已齐备，继续推进。',
-        },
-      ],
-      onSave: (d) => this.store.g1(this.id(), d['result'], d['opinion']),
-    });
-  }
   opinion(): void {
     const s = this.record()!;
     this.store.ui.open({
@@ -320,7 +741,6 @@ export class SalesDetail {
         window: '生产45工作日，预计11月中旬进场（演示）',
       },
       onSave: (d) => {
-        if (this.store.role() !== 'pm') return this.store.ui.fail('请切换项目经理记录初判');
         const record = {
           ...structuredClone(s),
           deliveryOpinion: d['opinion'],
@@ -364,7 +784,7 @@ export class SalesDetail {
           tradeTerm: d['tradeTerm'],
           taxNote: d['taxNote'],
           taxConfirmed: false,
-        }),
+        }, undefined, '商务补充'),
     });
   }
 }

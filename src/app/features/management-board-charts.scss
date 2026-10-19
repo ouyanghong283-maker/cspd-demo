@@ -1,0 +1,63 @@
+@use '../shared/v9-design-tokens' as v9;
+:host {
+  display: block;
+  min-width: 0;
+}
+.statistics {
+  @include v9.reading-content;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: var(--v9-space-6);
+  margin-block: var(--v9-space-6);
+}
+.v9-table {
+  min-width: 500px;
+}
+.results {
+  display: flex;
+  gap: var(--v9-space-3);
+  flex-wrap: wrap;
+}
+.results button {
+  display: grid;
+  gap: var(--v9-space-2);
+  min-width: 88px;
+  text-align: left;
+}
+.results strong {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+li {
+  margin-block: var(--v9-space-2);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1100px) {
+  .statistics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+meter {
+  display: block;
+  width: 100%;
+  height: 12px;
+  margin-block: 8px 16px;
+  accent-color: var(--v9-accent);
+}
+.v9-panel {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none;
+    transition: none;
+  }
+}
+
+:host-context(.reduce-motion) * {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}

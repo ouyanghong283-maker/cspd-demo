@@ -1,0 +1,64 @@
+@use '../shared/v9-design-tokens' as v9;
+:host {
+  display: block;
+  min-width: 0;
+  margin-block: 16px;
+}
+.v9-reading {
+  @include v9.reading-surface(light);
+}
+.outputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-block: 20px;
+}
+article {
+  border-block-start: 2px solid var(--v9-line);
+  padding-block: 12px;
+  min-width: 0;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-block: 12px;
+}
+input,
+select,
+textarea {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  color: #16324a;
+  background: white;
+  border: 1px solid #8296a6;
+  border-radius: 4px;
+  font: inherit;
+}
+input[type='file'] {
+  width: 100%;
+}
+fieldset {
+  min-width: 0;
+  border: 1px solid #dee6ec;
+  padding: 16px;
+  margin-block: 12px;
+}
+p,
+.filename {
+  overflow-wrap: anywhere;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #245d87;
+  outline-offset: 3px;
+}
+@media (max-width: 640px) {
+  .outputs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

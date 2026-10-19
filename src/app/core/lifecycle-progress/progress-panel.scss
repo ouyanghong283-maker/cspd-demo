@@ -1,0 +1,11 @@
+@use '../../shared/v9-design-tokens' as v9;
+:host {
+  display: block;
+  min-width: 0;
+}
+.v9-reading {
+  @include v9.reading-surface(light);
+}
+.v9-table {
+  min-width: 640px;
+}

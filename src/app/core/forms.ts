@@ -3,9 +3,12 @@ import { Router } from '@angular/router';
 import {
   Activity,
   BASE_DATE,
+  CELL_DEMAND_OPTIONS,
+  Contact,
   Customer,
   Field,
   Project,
+  PROJECT_REGION_OPTIONS,
   ROLES,
   SalesRecord,
   TeamMember,
@@ -13,31 +16,83 @@ import {
 import { blankSales, newId, makeTeam } from './seed';
 import { DemoStore } from './store';
 import { UiService } from './ui.service';
+import { DEMO_IDENTITY_BINDINGS, identityForRole } from './identity';
+import { INTERNAL_PEOPLE, peopleField, personField, PROJECT_MANAGERS } from './personnel';
+import { needsTenderTeam } from './rules';
+import {
+  CUSTOMER_COUNTRIES,
+  CUSTOMER_EMPLOYEE_SIZES,
+  CUSTOMER_INDUSTRY_ROLES,
+  CUSTOMER_REGIONS,
+  CUSTOMER_STATUSES,
+} from './customer-dictionaries';
+const FOLLOW_LINKED_COUNTRY = '__follow_linked_country__';
 @Injectable({ providedIn: 'root' })
 export class BusinessForms {
   store = inject(DemoStore);
   ui = inject(UiService);
   router = inject(Router);
   newLead(): void {
+    const role = this.store.role();
+    const sampleCustomer = this.store.state().customers.find(
+      (customer) => customer.name === '演示能源科技',
+    );
+    const customerOptions = this.store.state().customers.map((customer) => ({
+      value: customer.id,
+      label: `${customer.name} · ${customer.country} · ${customer.id}`,
+    }));
     this.ui.open({
       title: '新建项目线索',
-      description: '草稿只需要客户名称。联系方式与需求资料可以逐步补充。',
+      description:
+        '可创建线索草稿并手动选择负责人；客户和联系人以稳定ID关联，线索转换不会自动成为有效商机。',
       submitLabel: '保存线索草稿',
       fields: [
         {
           key: 'customer',
           label: '客户名称',
           required: true,
-          hint: '选择现有客户名称，或输入新客户名称',
+          hint: '输入客户名称后，请在下方明确选择已有客户或“新建独立客户”；名称相同或相近时先人工核对。',
         },
-        { key: 'country', label: '国家 / 地区', value: '中国' },
+        {
+          key: 'existingCustomerId',
+          label: '客户关联（必须人工选择）',
+          type: 'select',
+          required: true,
+          hint: '列表仅供核对，不会按名称自动关联或合并；确认新建时请选择“新建独立客户”。',
+          options: [
+            ...customerOptions,
+            { value: '__new__', label: '新建独立客户（已核对名称相近项）' },
+          ],
+        },
+        {
+          key: 'country',
+          label: '客户国家（新建客户时）',
+          type: 'select',
+          required: true,
+          enabledWhen: { field: 'existingCustomerId', equals: '__new__' },
+          disabledValue: FOLLOW_LINKED_COUNTRY,
+          options: [
+            {
+              value: FOLLOW_LINKED_COUNTRY,
+              label: '跟随关联（自动匹配关联客户档案中的国家）',
+            },
+            ...CUSTOMER_COUNTRIES,
+          ],
+          value: FOLLOW_LINKED_COUNTRY,
+          hint: '关联已有客户时本项锁定并自动使用客户档案中的国家；仅“新建独立客户”时可选择具体国家。',
+        },
         { key: 'project', label: '项目名称', hint: '例如：青山储能一期' },
         {
           key: 'owner',
-          label: '实际销售负责人',
+          label: '实际销售负责人（可暂不分配）',
           type: 'select',
-          options: ['张销售', '赵销售', '孙销售'],
-          value: '张销售',
+          options: [
+            '',
+            ...DEMO_IDENTITY_BINDINGS.filter((binding) => binding.role === 'sales').map(
+              (binding) => binding.displayName,
+            ),
+          ],
+          value: role === 'sales' ? identityForRole('sales')?.displayName || '' : '',
         },
         { key: 'contact', label: '联系人姓名' },
         { key: 'email', label: '联系邮箱', type: 'email' },
@@ -45,30 +100,58 @@ export class BusinessForms {
           key: 'source',
           label: '线索来源',
           type: 'select',
-          options: ['业务手动登记', '客户推荐', '展会交流', '官网咨询'],
-          value: '业务手动登记',
+          options: ['市场活动', '官网咨询', '客户推荐', '中间人', '自有开发'],
+          value: '自有开发',
         },
         { key: 'description', label: '需求简述', type: 'textarea' },
       ],
       sample: {
         customer: '演示能源科技',
-        country: '中国',
+        existingCustomerId: sampleCustomer?.id || '__new__',
+        country: sampleCustomer ? FOLLOW_LINKED_COUNTRY : '中国',
         project: '青山储能新增项目',
-        owner: '张销售',
+        owner: identityForRole('sales')?.displayName || '',
         contact: '陈客户',
         email: 'demo@example.com',
-        source: '业务手动登记',
+        source: '自有开发',
         description: '客户计划建设10MWh储能系统，需求表稍后补充。',
       },
       onSave: (d) => {
-        if (d['contact'] && !d['email']) return this.ui.fail('新增联系人请填写邮箱；也可留空联系人稍后补充');
-        let c = this.store.state().customers.find((c) => c.name === d['customer']);
+        if (d['contact'] && !d['email'])
+          return this.ui.fail('新增联系人请填写邮箱；也可留空联系人稍后补充');
+        const selectedCustomerId = d['existingCustomerId'];
+        if (!selectedCustomerId)
+          return this.ui.fail('请明确选择要关联的客户，或选择“新建独立客户”');
+        // Selecting __new__ is the user's explicit choice to keep a separate customer record.
+        const existingCustomer =
+          selectedCustomerId === '__new__' ? undefined : this.store.customer(selectedCustomerId);
+        if (selectedCustomerId !== '__new__' && !existingCustomer)
+          return this.ui.fail('所选客户不存在，请重新选择或选择新建独立客户');
+        if (d['country'] === FOLLOW_LINKED_COUNTRY && !existingCustomer)
+          return this.ui.fail('选择“跟随关联”时需关联已有客户；新建独立客户请选择具体国家');
+        if (
+          existingCustomer &&
+          !CUSTOMER_COUNTRIES.includes(
+            existingCustomer.country as (typeof CUSTOMER_COUNTRIES)[number],
+          )
+        )
+          return this.ui.fail(
+            `关联客户的国家“${existingCustomer.country || '空'}”不在 CRM 可选范围，请先到客户管理更新该客户国家`,
+          );
+        let c = existingCustomer ? structuredClone(existingCustomer) : undefined;
         if (!c) {
           c = {
             id: newId('C'),
             name: d['customer'],
             shortName: d['customer'].slice(0, 4),
-            country: d['country'] || '中国',
+            country: d['country'],
+            region: '',
+            status: '潜在客户',
+            owner: d['owner'] || this.store.person(),
+            employeeSize: '',
+            basicInfo: '',
+            createdAt: BASE_DATE,
+            createdBy: this.store.person(),
             industry: 'Owner',
             address: '',
             contacts:
@@ -86,55 +169,75 @@ export class BusinessForms {
                   ]
                 : [],
           };
-          if (!this.store.saveCustomer(c)) return false;
         }
-        let selectedContact = c.contacts.find((contact) => contact.name === d['contact']);
+        let selectedContact = c.contacts.find(
+          (contact) => contact.name === d['contact'] && contact.email === d['email'],
+        );
         if (d['contact'] && d['email'] && !selectedContact) {
-          selectedContact = { id: newId('CT'), name: d['contact'], email: d['email'], phone: '', title: '', department: '', position: '' };
+          selectedContact = {
+            id: newId('CT'),
+            name: d['contact'],
+            email: d['email'],
+            phone: '',
+            title: '',
+            department: '',
+            position: '',
+          };
           c.contacts = [...c.contacts, selectedContact];
-          if (!this.store.saveCustomer(c)) return false;
         }
         const lead = blankSales(newId('L'), c.id);
         Object.assign(lead, {
           projectName: d['project'],
-          owner: d['owner'] || '张销售',
+          owner: d['owner'] || '',
+          ownerPersonId: DEMO_IDENTITY_BINDINGS.find(
+            (binding) => binding.role === 'sales' && binding.displayName === d['owner'],
+          )?.personId,
           operator: this.store.person(),
           description: d['description'],
           source: d['source'] || '业务手动登记',
+          crmSource: d['source'] || '自有开发',
           contactId: selectedContact?.id || '',
         });
-        if (!this.store.saveSales(lead)) return false;
+        if (!this.store.saveSales(lead, c)) return false;
         this.router.navigate(['/sales/detail', lead.id]);
         return true;
       },
     });
   }
   editSales(record: SalesRecord): void {
-    const customer = this.store.customer(record.customerId)!;
+    const customer = this.store.customer(record.customerId);
     const fields: Field[] = [
       {
         key: 'customer',
         label: '客户名称',
         type: 'select',
         required: true,
-        options: this.store.state().customers.map((c) => c.name),
-        value: customer.name,
+        options: this.store
+          .state()
+          .customers.map((c) => ({ value: c.id, label: `${c.name} · ${c.country} · ${c.id}` })),
+        value: record.customerId,
       },
       {
         key: 'contact',
         label: '主要联系人',
         type: 'select',
-        options: customer.contacts.map((c) => c.name),
-        value: this.store.contact(record)?.name || '',
+        dependsOn: 'customer',
+        optionsByValue: Object.fromEntries(
+          this.store.state().customers.map((c) => [
+            c.id,
+            c.contacts.map((contact) => ({
+              value: contact.id,
+              label: `${contact.name} · ${contact.email || contact.phone || '联系方式待补'} · ${contact.id}`,
+            })),
+          ]),
+        ),
+        options: (customer?.contacts || []).map((contact) => ({
+          value: contact.id,
+          label: contact.name,
+        })),
+        value: this.store.contact(record)?.id || '',
       },
       { key: 'project', label: '项目名称', value: record.projectName },
-      {
-        key: 'owner',
-        label: '实际销售负责人',
-        type: 'select',
-        options: ['张销售', '赵销售', '孙销售'],
-        value: record.owner,
-      },
       { key: 'capacity', label: '预计容量', type: 'number', min: 0, value: record.capacity },
       {
         key: 'unit',
@@ -143,6 +246,31 @@ export class BusinessForms {
         options: ['MWh', 'MW', 'kWh'],
         value: record.unit,
       },
+      ...(record.type === 'opportunity'
+        ? [
+            {
+              key: 'power',
+              label: '功率 (MW)',
+              type: 'number' as const,
+              min: 0,
+              value: record.power,
+            },
+            {
+              key: 'cellDemand',
+              label: '电芯需求',
+              type: 'select' as const,
+              options: [...CELL_DEMAND_OPTIONS],
+              value: record.cellDemand || '',
+            },
+            {
+              key: 'projectRegion',
+              label: '所在区域（项目地区）',
+              type: 'select' as const,
+              options: [...PROJECT_REGION_OPTIONS],
+              value: record.projectRegion || '',
+            },
+          ]
+        : []),
       { key: 'amount', label: '预计金额（元）', type: 'number', min: 0, value: record.amount },
       {
         key: 'currency',
@@ -154,7 +282,7 @@ export class BusinessForms {
       { key: 'expectedDate', label: '预计签单日期', type: 'date', value: record.expectedDate },
       {
         key: 'grade',
-        label: '人工项目等级',
+        label: '人工判定等级',
         type: 'select',
         options: ['S', 'A', 'B1', 'B2'],
         value: record.grade,
@@ -173,7 +301,6 @@ export class BusinessForms {
         options: ['FOB', 'CIF', '其他'],
         value: record.tradeTerm,
       },
-      { key: 'competitor', label: '竞争对手（可选）', value: record.competitor },
       { key: 'description', label: '客户及项目背景', type: 'textarea', value: record.description },
     ];
     this.ui.open({
@@ -183,6 +310,9 @@ export class BusinessForms {
         project: '青山储能一期',
         capacity: 10,
         unit: 'MWh',
+        ...(record.type === 'opportunity'
+          ? { power: 5, cellDemand: '314B', projectRegion: 'DACH' }
+          : {}),
         amount: 1000000,
         currency: 'CNY',
         expectedDate: '2026-11-15',
@@ -191,24 +321,54 @@ export class BusinessForms {
         description: '客户建设工商业储能，需兼顾削峰填谷和应急备电。',
       },
       onSave: (d) => {
-        const c = this.store.state().customers.find((c) => c.name === d['customer'])!;
+        const c = this.store.customer(d['customer']);
+        if (!c) return this.ui.fail('请选择有效客户');
         return this.store.saveSales({
           ...structuredClone(record),
           customerId: c.id,
-          contactId: c.contacts.find((c) => c.name === d['contact'])?.id || c.contacts[0]?.id || '',
+          contactId: d['contact'] || '',
           projectName: d['project'],
-          owner: d['owner'],
+          owner: record.owner,
           capacity: Number(d['capacity'] || 0),
           unit: d['unit'],
+          ...(record.type === 'opportunity'
+            ? {
+                power: Number(d['power'] || 0),
+                cellDemand: d['cellDemand'] || '',
+                projectRegion: d['projectRegion'] || '',
+              }
+            : {}),
           amount: Number(d['amount'] || 0),
           currency: d['currency'],
           expectedDate: d['expectedDate'],
           grade: d['grade'],
           tender: d['tender'],
           tradeTerm: d['tradeTerm'],
-          competitor: d['competitor'],
           description: d['description'],
-        });
+        }, undefined, record.type === 'opportunity' ? '商机基本信息' : '线索基本信息');
+      },
+    });
+  }
+  assignLead(record: SalesRecord): void {
+    if (record.type !== 'lead') return;
+    const salesBindings = DEMO_IDENTITY_BINDINGS.filter((binding) => binding.role === 'sales');
+    this.ui.open({
+      title: '主管分配线索',
+      description: '负责人使用演示身份ID保存；姓名仅用于显示。分配记录会写入操作日志。',
+      fields: [
+        {
+          key: 'person',
+          label: '销售负责人',
+          type: 'select',
+          options: salesBindings.map((binding) => binding.displayName),
+          value: record.owner,
+          required: true,
+        },
+        { key: 'reason', label: '分配原因', required: true, type: 'textarea' },
+      ],
+      onSave: (data) => {
+        const target = salesBindings.find((binding) => binding.displayName === data['person']);
+        return target ? this.store.assignLead(record.id, target.personId, data['reason']) : false;
       },
     });
   }
@@ -219,108 +379,195 @@ export class BusinessForms {
           id: newId('C'),
           name: '',
           shortName: '',
-          country: '中国',
+          country: '',
+          region: '',
+          status: '潜在客户',
+          owner: this.store.person(),
+          employeeSize: '',
+          basicInfo: '',
+          createdAt: BASE_DATE,
+          createdBy: this.store.person(),
           industry: 'Owner',
           address: '',
           contacts: [],
         };
-    const contact = c.contacts[0];
     this.ui.open({
-      title: customer ? '编辑客户与主要联系人' : '新建客户',
-      description: '共用客户资料，关联线索、商机和项目将同步引用。',
+      title: customer ? '编辑客户资料' : '新建客户',
+      description: customer
+        ? '客户资料通过稳定客户编号关联线索和商机。联系人请到独立的联系人管理中维护。'
+        : `当前客户列表有 ${this.store.state().customers.length} 条记录。保存前请核对名称相同或相近的客户；系统不会自动匹配或合并。`,
       fields: [
-        { key: 'name', label: '客户名称', required: true, value: c.name },
+        {
+          key: 'name',
+          label: '客户名称',
+          required: true,
+          value: c.name,
+          hint: customer ? '' : '请先人工核对客户列表中的同名或相近名称，再决定是否新建。',
+        },
         { key: 'shortName', label: '客户简称', value: c.shortName },
-        { key: 'country', label: '国家 / 地区', required: true, value: c.country },
+        { key: 'email', label: '客户邮箱', type: 'email', value: c.email || '' },
+        {
+          key: 'country',
+          label: '客户国家',
+          type: 'select',
+          required: true,
+          options: [...CUSTOMER_COUNTRIES],
+          value: CUSTOMER_COUNTRIES.includes(c.country as (typeof CUSTOMER_COUNTRIES)[number])
+            ? c.country
+            : '',
+          hint: '使用客户国家下拉选项；历史值不在选项中时，请选择当前正确值。',
+        },
+        {
+          key: 'region',
+          label: '客户地区',
+          type: 'select',
+          options: [...CUSTOMER_REGIONS],
+          value: c.region || '',
+        },
         {
           key: 'industry',
           label: '行业角色',
           type: 'select',
-          options: ['EPC', 'Developer', 'Investor', 'Owner', 'Integrator'],
+          required: true,
+          options: [...CUSTOMER_INDUSTRY_ROLES],
           value: c.industry,
         },
-        { key: 'contact', label: '主要联系人姓名', value: contact?.name || '' },
-        { key: 'title', label: '称谓', value: contact?.title || '' },
-        { key: 'department', label: '部门', value: contact?.department || '' },
-        { key: 'position', label: '岗位', value: contact?.position || '' },
-        { key: 'phone', label: '联系电话', value: contact?.phone || '' },
-        { key: 'email', label: '电子邮箱', type: 'email', value: contact?.email || '' },
+        {
+          key: 'employeeSize',
+          label: '客户人员规模',
+          type: 'select',
+          options: [...CUSTOMER_EMPLOYEE_SIZES],
+          value: c.employeeSize || '',
+        },
+        {
+          key: 'status',
+          label: '客户状态',
+          type: 'select',
+          required: true,
+          options: [...CUSTOMER_STATUSES],
+          value: c.status || '潜在客户',
+        },
+        personField('owner', '销售负责人', c.owner || this.store.person(), true),
         { key: 'address', label: '客户地址', type: 'textarea', value: c.address },
+        { key: 'basicInfo', label: '客户基本信息', type: 'textarea', value: c.basicInfo || '' },
       ],
       sample: {
         name: '青山能源科技',
         shortName: '青山能源',
-        country: '中国',
+        country: 'Germany',
+        region: 'DACH',
         industry: 'Owner',
-        contact: '陈客户',
-        department: '采购部',
-        position: '项目经理',
-        phone: '13900001234',
-        email: 'customer@example.com',
+        employeeSize: '100-500',
+        status: '潜在客户',
+        owner: this.store.person(),
+        address: 'Berlin, Germany',
+        basicInfo: '客户主体背景和经营信息（演示）',
       },
       onSave: (d) => {
-        const contacts = [...c.contacts];
-        if (d['contact']) {
-          const first = {
-            id: contact?.id || newId('CT'),
-            name: d['contact'],
-            title: d['title'],
-            department: d['department'],
-            position: d['position'],
-            phone: d['phone'],
-            email: d['email'],
-          };
-          if (contacts.length) contacts[0] = first;
-          else contacts.push(first);
-        }
         return this.store.saveCustomer({
           ...c,
           name: d['name'],
           shortName: d['shortName'] || d['name'].slice(0, 4),
+          email: d['email'],
           country: d['country'],
+          region: d['region'],
+          employeeSize: d['employeeSize'],
+          status: d['status'],
+          owner: d['owner'],
           industry: d['industry'],
           address: d['address'],
-          contacts,
+          basicInfo: d['basicInfo'],
+          createdAt: c.createdAt || BASE_DATE,
+          createdBy: c.createdBy || this.store.person(),
         });
       },
     });
   }
-  addContact(customer: Customer): void {
+  addContact(customer?: Customer, contact?: Contact): void {
+    const customerOptions = this.store.state().customers.map((item) => ({
+      value: item.id,
+      label: `${item.name} · ${item.country} · ${item.id}`,
+    }));
+    const selectedCustomer =
+      customer ||
+      (contact &&
+        this.store
+          .state()
+          .customers.find((item) =>
+            item.contacts.some((candidate) => candidate.id === contact.id),
+          ));
+    if (contact && !selectedCustomer) return void this.ui.fail('找不到联系人的关联客户');
+    const initial = contact || {
+      id: newId('CT'),
+      name: '',
+      title: '',
+      department: '',
+      position: '',
+      phone: '',
+      email: '',
+      purchasingRole: '',
+    };
     this.ui.open({
-      title: '新增联系人',
+      title: contact ? '编辑联系人' : '新增联系人',
+      description: selectedCustomer
+        ? `此联系人关联客户：${selectedCustomer.name}。客户与联系人分别维护。`
+        : '请选择所属客户。联系人会以独立编号保存在联系人管理中。',
       fields: [
-        { key: 'name', label: '联系人姓名', required: true },
-        { key: 'title', label: '称谓' },
-        { key: 'department', label: '部门' },
-        { key: 'position', label: '岗位' },
-        { key: 'phone', label: '手机号' },
-        { key: 'email', label: '邮箱', type: 'email' },
+        ...(!selectedCustomer
+          ? [
+              {
+                key: 'customerId',
+                label: '所属客户',
+                type: 'select' as const,
+                required: true,
+                options: customerOptions,
+              },
+            ]
+          : []),
+        { key: 'name', label: '联系人姓名', required: true, value: initial.name },
+        { key: 'title', label: '称谓', value: initial.title },
+        { key: 'department', label: '部门', value: initial.department },
+        { key: 'position', label: '岗位', value: initial.position },
+        {
+          key: 'purchasingRole',
+          label: '采购作用（销售明确记录）',
+          value: initial.purchasingRole || '',
+          hint: '由销售手工填写；不根据称谓、部门或岗位推断。',
+        },
+        { key: 'phone', label: '手机号', value: initial.phone },
+        { key: 'email', label: '邮箱', type: 'email', value: initial.email },
       ],
-      sample: {
-        name: '李采购',
-        department: '采购部',
-        position: '采购负责人',
-        email: 'purchase@example.com',
-      },
-      onSave: (d) =>
-        this.store.saveCustomer({
-          ...structuredClone(customer),
-          contacts: [
-            ...customer.contacts,
-            {
-              id: newId('CT'),
-              name: d['name'],
-              title: d['title'],
-              department: d['department'],
-              position: d['position'],
-              phone: d['phone'],
-              email: d['email'],
+      ...(!contact
+        ? {
+            sample: {
+              customerId: selectedCustomer?.id || customerOptions[0]?.value || '',
+              name: '李采购',
+              department: '采购部',
+              position: '采购负责人',
+              purchasingRole: '采购决策参与人（演示）',
+              email: 'purchase@example.com',
             },
-          ],
-        }),
+          }
+        : {}),
+      onSave: (d) => {
+        const target = selectedCustomer || this.store.customer(d['customerId']);
+        if (!target) return this.ui.fail('请先选择有效客户');
+        return this.store.saveContact(target.id, {
+          ...initial,
+          name: d['name'],
+          title: d['title'],
+          department: d['department'],
+          position: d['position'],
+          purchasingRole: d['purchasingRole'],
+          phone: d['phone'],
+          email: d['email'],
+        });
+      },
     });
   }
   activity(id: string): void {
+    const entity = this.store.sale(id) || this.store.project(id);
+    const contacts = entity ? this.store.customer(entity.customerId)?.contacts || [] : [];
     this.ui.open({
       title: '记录客户沟通',
       description: '电话、邮件、会议或普通纪要均可。未来日期不能解除冷却提醒。',
@@ -334,7 +581,10 @@ export class BusinessForms {
           options: ['电话', '邮件', '拜访', '会议', '方案交流', '内部备注'],
           value: '电话',
         },
-        { key: 'people', label: '参与人', value: this.store.person() },
+        peopleField('people', '参与人', this.store.person(), [
+          ...INTERNAL_PEOPLE,
+          ...contacts.map((contact) => contact.name),
+        ]),
         { key: 'summary', label: '沟通结论 / 摘要', type: 'textarea', required: true },
         { key: 'next', label: '下一步（可选）', type: 'textarea' },
       ],
@@ -358,32 +608,53 @@ export class BusinessForms {
   assignTeam(id: string): void {
     const object = this.store.sale(id) || this.store.project(id)!;
     const team = object.team.length ? structuredClone(object.team) : makeTeam();
+    const opportunity = this.store.sale(id);
+    const requiredTenderTeam = opportunity?.type === 'opportunity' && needsTenderTeam(opportunity);
     this.ui.open({
-      title: '部门负责人指定项目团队',
-      description: '指定人员后，需要成员确认参与；交付项目由PM确认成员。',
+      title: '手动选择协作人员与适用部门',
+      description: requiredTenderTeam
+        ? '该商机满足投标且A/S条件，三类协作角色都需确认参与；部门任务完成另行记录。人员和窗口仅为模拟。'
+        : '手动选择适用部门和人员；参与确认与部门任务完成分别留痕，模拟窗口不锁定真实资源。',
       fields: team.flatMap((t, i) => [
-        {
-          key: `person${i}`,
-          label: ROLES.find((r) => r.id === t.role)?.name || t.department,
-          type: 'select' as const,
-          options: [t.person, ROLES.find((r) => r.id === t.role)?.person || t.person].filter(
-            (x, i, a) => a.indexOf(x) === i,
-          ),
-          value: t.person,
-          required: true,
-        },
+        ...(!requiredTenderTeam
+          ? [
+              {
+                key: `applicable${i}`,
+                label: `${t.department}是否适用`,
+                type: 'select' as const,
+                options: ['适用', '不适用'],
+                value: '适用',
+                required: true,
+              },
+            ]
+          : []),
+        personField(
+          `person${i}`,
+          ROLES.find((r) => r.id === t.role)?.name || t.department,
+          t.person,
+          true,
+          t.role === 'pm'
+            ? PROJECT_MANAGERS
+            : ROLES.filter((r) => r.id === t.role && r.id !== 'outsider').map((r) => r.person),
+        ),
         { key: `window${i}`, label: '参与窗口 / 责任备注', value: t.window },
       ]),
       onSave: (d) =>
         this.store.assignTeam(
           id,
-          team.map((t, i) => ({
-            ...t,
-            person: d[`person${i}`],
-            window: d[`window${i}`],
-            confirmed: false,
-            confirmedBy: '',
-          })),
+          team.flatMap((t, i) =>
+            !requiredTenderTeam && d[`applicable${i}`] === '不适用'
+              ? []
+              : [
+                  {
+                    ...t,
+                    person: d[`person${i}`],
+                    window: d[`window${i}`],
+                    confirmed: false,
+                    confirmedBy: '',
+                  },
+                ],
+          ),
         ),
     });
   }
@@ -401,13 +672,15 @@ export class BusinessForms {
           required: result === '赢单',
           value: BASE_DATE,
         },
-        { key: 'income', label: '确认收入日期（可选）', type: 'date' },
+        ...(result === '赢单'
+          ? [{ key: 'income', label: '确认收入日期（可选）', type: 'date' as const }]
+          : []),
       ],
       sample: {
         reason: result === '赢单' ? '方案与交期满足客户需求' : '客户预算延期，暂未推进',
         date: BASE_DATE,
       },
-      onSave: (d) => this.store.closeSale(id, result, d['reason'], d['date'], d['income']),
+      onSave: (d) => this.store.closeSale(id, result, d['reason'], d['date'], d['income'] || ''),
     });
   }
   project(project: Project): void {

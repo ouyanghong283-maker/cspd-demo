@@ -1,0 +1,2142 @@
+[
+  {
+    "id": "unfinalized",
+    "origin": "simulated",
+    "description": "未定稿，四类输出尚未提供",
+    "target": {
+      "workspaceId": "WS-V9-CONTRACT",
+      "roundId": "ROUND-V9-CONTRACT"
+    },
+    "opportunityId": "DEMO-O001",
+    "projectId": "DEMO-P001",
+    "workspace": {
+      "id": "SOLUTION-O001",
+      "opportunityId": "DEMO-O001",
+      "revision": 1,
+      "productNeedRevision": "NEED-1",
+      "versions": [],
+      "currentOutputs": {},
+      "schedule": null,
+      "scheduleChanges": [],
+      "finalizations": [],
+      "firstFinalization": null,
+      "legacyFacts": []
+    },
+    "availability": {},
+    "budget": [],
+    "expected": {
+      "firstResult": "not-finalized",
+      "availability": [
+        "missing",
+        "missing",
+        "missing",
+        "missing"
+      ]
+    }
+  },
+  {
+    "id": "first-finalized",
+    "origin": "simulated",
+    "description": "模拟首次已完成，冻结首次成绩",
+    "target": {
+      "workspaceId": "WS-V9-CONTRACT",
+      "roundId": "ROUND-V9-CONTRACT"
+    },
+    "opportunityId": "DEMO-O001",
+    "projectId": "DEMO-P001",
+    "workspace": {
+      "id": "SOLUTION-O001",
+      "opportunityId": "DEMO-O001",
+      "revision": 1,
+      "productNeedRevision": "NEED-1",
+      "versions": [
+        {
+          "id": "VER-PROPOSAL-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "proposal",
+          "number": 1,
+          "documentId": "DOC-PROPOSAL-1",
+          "fileName": "技术方案-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-PROPOSAL-1",
+            "versionId": "VER-PROPOSAL-1"
+          }
+        },
+        {
+          "id": "VER-BOM-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "bom",
+          "number": 1,
+          "documentId": "DOC-BOM-1",
+          "fileName": "设计BOM-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-BOM-1",
+            "versionId": "VER-BOM-1"
+          }
+        },
+        {
+          "id": "VER-SLD-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "sld",
+          "number": 1,
+          "documentId": "DOC-SLD-1",
+          "fileName": "SLD-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-SLD-1",
+            "versionId": "VER-SLD-1"
+          }
+        },
+        {
+          "id": "VER-DEGRADATION-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "degradation",
+          "number": 1,
+          "documentId": "DOC-DEGRADATION-1",
+          "fileName": "衰减资料-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-DEGRADATION-1",
+            "versionId": "VER-DEGRADATION-1"
+          }
+        },
+        {
+          "id": "VER-TIC-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "tic",
+          "number": 1,
+          "documentId": "DOC-TIC-1",
+          "fileName": "TIC输入-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-TIC-1",
+            "versionId": "VER-TIC-1"
+          }
+        }
+      ],
+      "currentOutputs": {
+        "proposal": "VER-PROPOSAL-1",
+        "bom": "VER-BOM-1",
+        "sld": "VER-SLD-1",
+        "degradation": "VER-DEGRADATION-1"
+      },
+      "schedule": {
+        "opportunityId": "DEMO-O001",
+        "pm": {
+          "personId": "PERSON-PM",
+          "name": "王项目"
+        },
+        "owner": {
+          "personId": "PERSON-SOLUTION",
+          "name": "周方案"
+        },
+        "deadlineDate": "2026-10-20",
+        "timezone": "Asia/Shanghai",
+        "revision": 1,
+        "frozenByEventId": "FINAL-1"
+      },
+      "scheduleChanges": [],
+      "finalizations": [
+        {
+          "id": "FINAL-1",
+          "opportunityId": "DEMO-O001",
+          "sequence": 1,
+          "firstEventId": "FINAL-1",
+          "fourVersionIds": {
+            "proposal": "VER-PROPOSAL-1",
+            "bom": "VER-BOM-1",
+            "sld": "VER-SLD-1",
+            "degradation": "VER-DEGRADATION-1"
+          },
+          "versionMetadataSnapshot": [
+            {
+              "id": "VER-PROPOSAL-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "proposal",
+              "number": 1,
+              "documentId": "DOC-PROPOSAL-1",
+              "fileName": "技术方案-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-PROPOSAL-1",
+                "versionId": "VER-PROPOSAL-1"
+              }
+            },
+            {
+              "id": "VER-BOM-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "bom",
+              "number": 1,
+              "documentId": "DOC-BOM-1",
+              "fileName": "设计BOM-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-BOM-1",
+                "versionId": "VER-BOM-1"
+              }
+            },
+            {
+              "id": "VER-SLD-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "sld",
+              "number": 1,
+              "documentId": "DOC-SLD-1",
+              "fileName": "SLD-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-SLD-1",
+                "versionId": "VER-SLD-1"
+              }
+            },
+            {
+              "id": "VER-DEGRADATION-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "degradation",
+              "number": 1,
+              "documentId": "DOC-DEGRADATION-1",
+              "fileName": "衰减资料-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-DEGRADATION-1",
+                "versionId": "VER-DEGRADATION-1"
+              }
+            }
+          ],
+          "productNeedRevision": "NEED-1",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "confirmedAt": "2026-10-14T02:30:00.000Z",
+          "deadlineSnapshot": "2026-10-20",
+          "scheduleRevision": 1,
+          "origin": "simulated"
+        }
+      ],
+      "firstFinalization": {
+        "eventId": "FINAL-1",
+        "deadlineDate": "2026-10-20",
+        "timezone": "Asia/Shanghai",
+        "businessDate": "2026-10-14",
+        "daysEarly": 6,
+        "result": "on-time"
+      },
+      "legacyFacts": []
+    },
+    "availability": {
+      "VER-PROPOSAL-1": "present",
+      "VER-BOM-1": "present",
+      "VER-SLD-1": "present",
+      "VER-DEGRADATION-1": "present"
+    },
+    "budget": [],
+    "expected": {
+      "firstResult": "on-time",
+      "availability": [
+        "present",
+        "present",
+        "present",
+        "present"
+      ]
+    }
+  },
+  {
+    "id": "revised-pending",
+    "origin": "simulated",
+    "description": "模拟技术方案改V2待重新定稿，首次成绩仍冻结",
+    "target": {
+      "workspaceId": "WS-V9-CONTRACT",
+      "roundId": "ROUND-V9-CONTRACT"
+    },
+    "opportunityId": "DEMO-O001",
+    "projectId": "DEMO-P001",
+    "workspace": {
+      "id": "SOLUTION-O001",
+      "opportunityId": "DEMO-O001",
+      "revision": 2,
+      "productNeedRevision": "NEED-1",
+      "versions": [
+        {
+          "id": "VER-PROPOSAL-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "proposal",
+          "number": 1,
+          "documentId": "DOC-PROPOSAL-1",
+          "fileName": "技术方案-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "metadataOnly",
+          "file": null
+        },
+        {
+          "id": "VER-BOM-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "bom",
+          "number": 1,
+          "documentId": "DOC-BOM-1",
+          "fileName": "设计BOM-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-BOM-1",
+            "versionId": "VER-BOM-1"
+          }
+        },
+        {
+          "id": "VER-SLD-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "sld",
+          "number": 1,
+          "documentId": "DOC-SLD-1",
+          "fileName": "SLD-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-SLD-1",
+            "versionId": "VER-SLD-1"
+          }
+        },
+        {
+          "id": "VER-DEGRADATION-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "degradation",
+          "number": 1,
+          "documentId": "DOC-DEGRADATION-1",
+          "fileName": "衰减资料-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-DEGRADATION-1",
+            "versionId": "VER-DEGRADATION-1"
+          }
+        },
+        {
+          "id": "VER-TIC-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "tic",
+          "number": 1,
+          "documentId": "DOC-TIC-1",
+          "fileName": "TIC输入-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-TIC-1",
+            "versionId": "VER-TIC-1"
+          }
+        },
+        {
+          "id": "VER-PROPOSAL-2",
+          "opportunityId": "DEMO-O001",
+          "kind": "proposal",
+          "number": 2,
+          "documentId": "DOC-PROPOSAL-2",
+          "fileName": "技术方案-V2.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-PROPOSAL-2",
+            "versionId": "VER-PROPOSAL-2"
+          }
+        }
+      ],
+      "currentOutputs": {
+        "proposal": "VER-PROPOSAL-2",
+        "bom": "VER-BOM-1",
+        "sld": "VER-SLD-1",
+        "degradation": "VER-DEGRADATION-1"
+      },
+      "schedule": {
+        "opportunityId": "DEMO-O001",
+        "pm": {
+          "personId": "PERSON-PM",
+          "name": "王项目"
+        },
+        "owner": {
+          "personId": "PERSON-SOLUTION",
+          "name": "周方案"
+        },
+        "deadlineDate": "2026-10-20",
+        "timezone": "Asia/Shanghai",
+        "revision": 1,
+        "frozenByEventId": "FINAL-1"
+      },
+      "scheduleChanges": [],
+      "finalizations": [
+        {
+          "id": "FINAL-1",
+          "opportunityId": "DEMO-O001",
+          "sequence": 1,
+          "firstEventId": "FINAL-1",
+          "fourVersionIds": {
+            "proposal": "VER-PROPOSAL-1",
+            "bom": "VER-BOM-1",
+            "sld": "VER-SLD-1",
+            "degradation": "VER-DEGRADATION-1"
+          },
+          "versionMetadataSnapshot": [
+            {
+              "id": "VER-PROPOSAL-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "proposal",
+              "number": 1,
+              "documentId": "DOC-PROPOSAL-1",
+              "fileName": "技术方案-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-PROPOSAL-1",
+                "versionId": "VER-PROPOSAL-1"
+              }
+            },
+            {
+              "id": "VER-BOM-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "bom",
+              "number": 1,
+              "documentId": "DOC-BOM-1",
+              "fileName": "设计BOM-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-BOM-1",
+                "versionId": "VER-BOM-1"
+              }
+            },
+            {
+              "id": "VER-SLD-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "sld",
+              "number": 1,
+              "documentId": "DOC-SLD-1",
+              "fileName": "SLD-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-SLD-1",
+                "versionId": "VER-SLD-1"
+              }
+            },
+            {
+              "id": "VER-DEGRADATION-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "degradation",
+              "number": 1,
+              "documentId": "DOC-DEGRADATION-1",
+              "fileName": "衰减资料-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-DEGRADATION-1",
+                "versionId": "VER-DEGRADATION-1"
+              }
+            }
+          ],
+          "productNeedRevision": "NEED-1",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "confirmedAt": "2026-10-14T02:30:00.000Z",
+          "deadlineSnapshot": "2026-10-20",
+          "scheduleRevision": 1,
+          "origin": "simulated"
+        }
+      ],
+      "firstFinalization": {
+        "eventId": "FINAL-1",
+        "deadlineDate": "2026-10-20",
+        "timezone": "Asia/Shanghai",
+        "businessDate": "2026-10-14",
+        "daysEarly": 6,
+        "result": "on-time"
+      },
+      "legacyFacts": []
+    },
+    "availability": {
+      "VER-PROPOSAL-1": "present",
+      "VER-BOM-1": "present",
+      "VER-SLD-1": "present",
+      "VER-DEGRADATION-1": "present",
+      "VER-PROPOSAL-2": "present"
+    },
+    "budget": [],
+    "expected": {
+      "firstResult": "on-time",
+      "availability": [
+        "present",
+        "present",
+        "present",
+        "present"
+      ]
+    }
+  },
+  {
+    "id": "file-missing",
+    "origin": "simulated",
+    "description": "file-missing",
+    "target": {
+      "workspaceId": "WS-V9-CONTRACT",
+      "roundId": "ROUND-V9-CONTRACT"
+    },
+    "opportunityId": "DEMO-O001",
+    "projectId": "DEMO-P001",
+    "workspace": {
+      "id": "SOLUTION-O001",
+      "opportunityId": "DEMO-O001",
+      "revision": 1,
+      "productNeedRevision": "NEED-1",
+      "versions": [
+        {
+          "id": "VER-PROPOSAL-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "proposal",
+          "number": 1,
+          "documentId": "DOC-PROPOSAL-1",
+          "fileName": "技术方案-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-PROPOSAL-1",
+            "versionId": "VER-PROPOSAL-1"
+          }
+        },
+        {
+          "id": "VER-BOM-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "bom",
+          "number": 1,
+          "documentId": "DOC-BOM-1",
+          "fileName": "设计BOM-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-BOM-1",
+            "versionId": "VER-BOM-1"
+          }
+        },
+        {
+          "id": "VER-SLD-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "sld",
+          "number": 1,
+          "documentId": "DOC-SLD-1",
+          "fileName": "SLD-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-SLD-1",
+            "versionId": "VER-SLD-1"
+          }
+        },
+        {
+          "id": "VER-DEGRADATION-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "degradation",
+          "number": 1,
+          "documentId": "DOC-DEGRADATION-1",
+          "fileName": "衰减资料-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-DEGRADATION-1",
+            "versionId": "VER-DEGRADATION-1"
+          }
+        },
+        {
+          "id": "VER-TIC-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "tic",
+          "number": 1,
+          "documentId": "DOC-TIC-1",
+          "fileName": "TIC输入-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-TIC-1",
+            "versionId": "VER-TIC-1"
+          }
+        }
+      ],
+      "currentOutputs": {
+        "proposal": "VER-PROPOSAL-1",
+        "bom": "VER-BOM-1",
+        "sld": "VER-SLD-1",
+        "degradation": "VER-DEGRADATION-1"
+      },
+      "schedule": {
+        "opportunityId": "DEMO-O001",
+        "pm": {
+          "personId": "PERSON-PM",
+          "name": "王项目"
+        },
+        "owner": {
+          "personId": "PERSON-SOLUTION",
+          "name": "周方案"
+        },
+        "deadlineDate": "2026-10-20",
+        "timezone": "Asia/Shanghai",
+        "revision": 1,
+        "frozenByEventId": "FINAL-1"
+      },
+      "scheduleChanges": [],
+      "finalizations": [
+        {
+          "id": "FINAL-1",
+          "opportunityId": "DEMO-O001",
+          "sequence": 1,
+          "firstEventId": "FINAL-1",
+          "fourVersionIds": {
+            "proposal": "VER-PROPOSAL-1",
+            "bom": "VER-BOM-1",
+            "sld": "VER-SLD-1",
+            "degradation": "VER-DEGRADATION-1"
+          },
+          "versionMetadataSnapshot": [
+            {
+              "id": "VER-PROPOSAL-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "proposal",
+              "number": 1,
+              "documentId": "DOC-PROPOSAL-1",
+              "fileName": "技术方案-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-PROPOSAL-1",
+                "versionId": "VER-PROPOSAL-1"
+              }
+            },
+            {
+              "id": "VER-BOM-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "bom",
+              "number": 1,
+              "documentId": "DOC-BOM-1",
+              "fileName": "设计BOM-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-BOM-1",
+                "versionId": "VER-BOM-1"
+              }
+            },
+            {
+              "id": "VER-SLD-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "sld",
+              "number": 1,
+              "documentId": "DOC-SLD-1",
+              "fileName": "SLD-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-SLD-1",
+                "versionId": "VER-SLD-1"
+              }
+            },
+            {
+              "id": "VER-DEGRADATION-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "degradation",
+              "number": 1,
+              "documentId": "DOC-DEGRADATION-1",
+              "fileName": "衰减资料-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-DEGRADATION-1",
+                "versionId": "VER-DEGRADATION-1"
+              }
+            }
+          ],
+          "productNeedRevision": "NEED-1",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "confirmedAt": "2026-10-14T02:30:00.000Z",
+          "deadlineSnapshot": "2026-10-20",
+          "scheduleRevision": 1,
+          "origin": "simulated"
+        }
+      ],
+      "firstFinalization": {
+        "eventId": "FINAL-1",
+        "deadlineDate": "2026-10-20",
+        "timezone": "Asia/Shanghai",
+        "businessDate": "2026-10-14",
+        "daysEarly": 6,
+        "result": "on-time"
+      },
+      "legacyFacts": []
+    },
+    "availability": {
+      "VER-PROPOSAL-1": "present",
+      "VER-BOM-1": "missing",
+      "VER-SLD-1": "present",
+      "VER-DEGRADATION-1": "present"
+    },
+    "budget": [],
+    "expected": {
+      "firstResult": "on-time",
+      "availability": [
+        "present",
+        "missing",
+        "present",
+        "present"
+      ]
+    }
+  },
+  {
+    "id": "file-unavailable",
+    "origin": "simulated",
+    "description": "file-unavailable",
+    "target": {
+      "workspaceId": "WS-V9-CONTRACT",
+      "roundId": "ROUND-V9-CONTRACT"
+    },
+    "opportunityId": "DEMO-O001",
+    "projectId": "DEMO-P001",
+    "workspace": {
+      "id": "SOLUTION-O001",
+      "opportunityId": "DEMO-O001",
+      "revision": 1,
+      "productNeedRevision": "NEED-1",
+      "versions": [
+        {
+          "id": "VER-PROPOSAL-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "proposal",
+          "number": 1,
+          "documentId": "DOC-PROPOSAL-1",
+          "fileName": "技术方案-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-PROPOSAL-1",
+            "versionId": "VER-PROPOSAL-1"
+          }
+        },
+        {
+          "id": "VER-BOM-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "bom",
+          "number": 1,
+          "documentId": "DOC-BOM-1",
+          "fileName": "设计BOM-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-BOM-1",
+            "versionId": "VER-BOM-1"
+          }
+        },
+        {
+          "id": "VER-SLD-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "sld",
+          "number": 1,
+          "documentId": "DOC-SLD-1",
+          "fileName": "SLD-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-SLD-1",
+            "versionId": "VER-SLD-1"
+          }
+        },
+        {
+          "id": "VER-DEGRADATION-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "degradation",
+          "number": 1,
+          "documentId": "DOC-DEGRADATION-1",
+          "fileName": "衰减资料-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-DEGRADATION-1",
+            "versionId": "VER-DEGRADATION-1"
+          }
+        },
+        {
+          "id": "VER-TIC-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "tic",
+          "number": 1,
+          "documentId": "DOC-TIC-1",
+          "fileName": "TIC输入-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-TIC-1",
+            "versionId": "VER-TIC-1"
+          }
+        }
+      ],
+      "currentOutputs": {
+        "proposal": "VER-PROPOSAL-1",
+        "bom": "VER-BOM-1",
+        "sld": "VER-SLD-1",
+        "degradation": "VER-DEGRADATION-1"
+      },
+      "schedule": {
+        "opportunityId": "DEMO-O001",
+        "pm": {
+          "personId": "PERSON-PM",
+          "name": "王项目"
+        },
+        "owner": {
+          "personId": "PERSON-SOLUTION",
+          "name": "周方案"
+        },
+        "deadlineDate": "2026-10-20",
+        "timezone": "Asia/Shanghai",
+        "revision": 1,
+        "frozenByEventId": "FINAL-1"
+      },
+      "scheduleChanges": [],
+      "finalizations": [
+        {
+          "id": "FINAL-1",
+          "opportunityId": "DEMO-O001",
+          "sequence": 1,
+          "firstEventId": "FINAL-1",
+          "fourVersionIds": {
+            "proposal": "VER-PROPOSAL-1",
+            "bom": "VER-BOM-1",
+            "sld": "VER-SLD-1",
+            "degradation": "VER-DEGRADATION-1"
+          },
+          "versionMetadataSnapshot": [
+            {
+              "id": "VER-PROPOSAL-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "proposal",
+              "number": 1,
+              "documentId": "DOC-PROPOSAL-1",
+              "fileName": "技术方案-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-PROPOSAL-1",
+                "versionId": "VER-PROPOSAL-1"
+              }
+            },
+            {
+              "id": "VER-BOM-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "bom",
+              "number": 1,
+              "documentId": "DOC-BOM-1",
+              "fileName": "设计BOM-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-BOM-1",
+                "versionId": "VER-BOM-1"
+              }
+            },
+            {
+              "id": "VER-SLD-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "sld",
+              "number": 1,
+              "documentId": "DOC-SLD-1",
+              "fileName": "SLD-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-SLD-1",
+                "versionId": "VER-SLD-1"
+              }
+            },
+            {
+              "id": "VER-DEGRADATION-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "degradation",
+              "number": 1,
+              "documentId": "DOC-DEGRADATION-1",
+              "fileName": "衰减资料-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-DEGRADATION-1",
+                "versionId": "VER-DEGRADATION-1"
+              }
+            }
+          ],
+          "productNeedRevision": "NEED-1",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "confirmedAt": "2026-10-14T02:30:00.000Z",
+          "deadlineSnapshot": "2026-10-20",
+          "scheduleRevision": 1,
+          "origin": "simulated"
+        }
+      ],
+      "firstFinalization": {
+        "eventId": "FINAL-1",
+        "deadlineDate": "2026-10-20",
+        "timezone": "Asia/Shanghai",
+        "businessDate": "2026-10-14",
+        "daysEarly": 6,
+        "result": "on-time"
+      },
+      "legacyFacts": []
+    },
+    "availability": {
+      "VER-PROPOSAL-1": "present",
+      "VER-BOM-1": "unavailable",
+      "VER-SLD-1": "present",
+      "VER-DEGRADATION-1": "present"
+    },
+    "budget": [],
+    "expected": {
+      "firstResult": "on-time",
+      "availability": [
+        "present",
+        "unavailable",
+        "present",
+        "present"
+      ]
+    }
+  },
+  {
+    "id": "file-checking",
+    "origin": "simulated",
+    "description": "file-checking",
+    "target": {
+      "workspaceId": "WS-V9-CONTRACT",
+      "roundId": "ROUND-V9-CONTRACT"
+    },
+    "opportunityId": "DEMO-O001",
+    "projectId": "DEMO-P001",
+    "workspace": {
+      "id": "SOLUTION-O001",
+      "opportunityId": "DEMO-O001",
+      "revision": 1,
+      "productNeedRevision": "NEED-1",
+      "versions": [
+        {
+          "id": "VER-PROPOSAL-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "proposal",
+          "number": 1,
+          "documentId": "DOC-PROPOSAL-1",
+          "fileName": "技术方案-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-PROPOSAL-1",
+            "versionId": "VER-PROPOSAL-1"
+          }
+        },
+        {
+          "id": "VER-BOM-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "bom",
+          "number": 1,
+          "documentId": "DOC-BOM-1",
+          "fileName": "设计BOM-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-BOM-1",
+            "versionId": "VER-BOM-1"
+          }
+        },
+        {
+          "id": "VER-SLD-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "sld",
+          "number": 1,
+          "documentId": "DOC-SLD-1",
+          "fileName": "SLD-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-SLD-1",
+            "versionId": "VER-SLD-1"
+          }
+        },
+        {
+          "id": "VER-DEGRADATION-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "degradation",
+          "number": 1,
+          "documentId": "DOC-DEGRADATION-1",
+          "fileName": "衰减资料-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-DEGRADATION-1",
+            "versionId": "VER-DEGRADATION-1"
+          }
+        },
+        {
+          "id": "VER-TIC-1",
+          "opportunityId": "DEMO-O001",
+          "kind": "tic",
+          "number": 1,
+          "documentId": "DOC-TIC-1",
+          "fileName": "TIC输入-V1.pdf",
+          "size": 1024,
+          "mime": "application/pdf",
+          "uploadedAt": "2026-10-12T02:30:00.000Z",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "note": "模拟契约输入，不表示真实文件已保存",
+          "origin": "simulated",
+          "uploadEvidence": null,
+          "contentState": "current",
+          "file": {
+            "workspaceId": "WS-V9-CONTRACT",
+            "roundId": "ROUND-V9-CONTRACT",
+            "blobId": "SIM-BLOB-VER-TIC-1",
+            "versionId": "VER-TIC-1"
+          }
+        }
+      ],
+      "currentOutputs": {
+        "proposal": "VER-PROPOSAL-1",
+        "bom": "VER-BOM-1",
+        "sld": "VER-SLD-1",
+        "degradation": "VER-DEGRADATION-1"
+      },
+      "schedule": {
+        "opportunityId": "DEMO-O001",
+        "pm": {
+          "personId": "PERSON-PM",
+          "name": "王项目"
+        },
+        "owner": {
+          "personId": "PERSON-SOLUTION",
+          "name": "周方案"
+        },
+        "deadlineDate": "2026-10-20",
+        "timezone": "Asia/Shanghai",
+        "revision": 1,
+        "frozenByEventId": "FINAL-1"
+      },
+      "scheduleChanges": [],
+      "finalizations": [
+        {
+          "id": "FINAL-1",
+          "opportunityId": "DEMO-O001",
+          "sequence": 1,
+          "firstEventId": "FINAL-1",
+          "fourVersionIds": {
+            "proposal": "VER-PROPOSAL-1",
+            "bom": "VER-BOM-1",
+            "sld": "VER-SLD-1",
+            "degradation": "VER-DEGRADATION-1"
+          },
+          "versionMetadataSnapshot": [
+            {
+              "id": "VER-PROPOSAL-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "proposal",
+              "number": 1,
+              "documentId": "DOC-PROPOSAL-1",
+              "fileName": "技术方案-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-PROPOSAL-1",
+                "versionId": "VER-PROPOSAL-1"
+              }
+            },
+            {
+              "id": "VER-BOM-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "bom",
+              "number": 1,
+              "documentId": "DOC-BOM-1",
+              "fileName": "设计BOM-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-BOM-1",
+                "versionId": "VER-BOM-1"
+              }
+            },
+            {
+              "id": "VER-SLD-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "sld",
+              "number": 1,
+              "documentId": "DOC-SLD-1",
+              "fileName": "SLD-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-SLD-1",
+                "versionId": "VER-SLD-1"
+              }
+            },
+            {
+              "id": "VER-DEGRADATION-1",
+              "opportunityId": "DEMO-O001",
+              "kind": "degradation",
+              "number": 1,
+              "documentId": "DOC-DEGRADATION-1",
+              "fileName": "衰减资料-V1.pdf",
+              "size": 1024,
+              "mime": "application/pdf",
+              "uploadedAt": "2026-10-12T02:30:00.000Z",
+              "owner": {
+                "personId": "PERSON-SOLUTION",
+                "name": "周方案"
+              },
+              "operator": {
+                "personId": "PERSON-SALES",
+                "name": "张销售"
+              },
+              "note": "模拟契约输入，不表示真实文件已保存",
+              "origin": "simulated",
+              "uploadEvidence": null,
+              "contentState": "current",
+              "file": {
+                "workspaceId": "WS-V9-CONTRACT",
+                "roundId": "ROUND-V9-CONTRACT",
+                "blobId": "SIM-BLOB-VER-DEGRADATION-1",
+                "versionId": "VER-DEGRADATION-1"
+              }
+            }
+          ],
+          "productNeedRevision": "NEED-1",
+          "owner": {
+            "personId": "PERSON-SOLUTION",
+            "name": "周方案"
+          },
+          "operator": {
+            "personId": "PERSON-SALES",
+            "name": "张销售"
+          },
+          "confirmedAt": "2026-10-14T02:30:00.000Z",
+          "deadlineSnapshot": "2026-10-20",
+          "scheduleRevision": 1,
+          "origin": "simulated"
+        }
+      ],
+      "firstFinalization": {
+        "eventId": "FINAL-1",
+        "deadlineDate": "2026-10-20",
+        "timezone": "Asia/Shanghai",
+        "businessDate": "2026-10-14",
+        "daysEarly": 6,
+        "result": "on-time"
+      },
+      "legacyFacts": []
+    },
+    "availability": {
+      "VER-PROPOSAL-1": "present",
+      "VER-SLD-1": "present",
+      "VER-DEGRADATION-1": "present"
+    },
+    "budget": [],
+    "expected": {
+      "firstResult": "on-time",
+      "availability": [
+        "present",
+        "checking",
+        "present",
+        "present"
+      ]
+    }
+  },
+  {
+    "id": "historical-unscored",
+    "origin": "simulated",
+    "description": "统一迁入旧最终事实，缺V9首次事件，历史未评分",
+    "target": {
+      "workspaceId": "WS-V9-CONTRACT",
+      "roundId": "ROUND-V9-CONTRACT"
+    },
+    "opportunityId": "DEMO-O001",
+    "projectId": "DEMO-P001",
+    "workspace": {
+      "id": "SOLUTION-O001",
+      "opportunityId": "DEMO-O001",
+      "revision": 1,
+      "productNeedRevision": "NEED-1",
+      "versions": [],
+      "currentOutputs": {},
+      "schedule": null,
+      "scheduleChanges": [],
+      "finalizations": [],
+      "firstFinalization": null,
+      "legacyFacts": [
+        {
+          "id": "OLD-FINAL-1",
+          "type": "legacy-final",
+          "origin": "legacy",
+          "original": {
+            "final": true
+          }
+        }
+      ]
+    },
+    "availability": {},
+    "budget": [],
+    "expected": {
+      "firstResult": "historical-unscored",
+      "availability": [
+        "missing",
+        "missing",
+        "missing",
+        "missing"
+      ]
+    }
+  },
+  {
+    "id": "progress-incomplete",
+    "origin": "simulated",
+    "description": "G1及任务映射未记录待补，不伪造进度分数",
+    "target": {
+      "workspaceId": "WS-V9-CONTRACT",
+      "roundId": "ROUND-V9-CONTRACT"
+    },
+    "opportunityId": "DEMO-O001",
+    "projectId": "DEMO-P001",
+    "workspace": {
+      "id": "SOLUTION-O001",
+      "opportunityId": "DEMO-O001",
+      "revision": 1,
+      "productNeedRevision": "NEED-1",
+      "versions": [],
+      "currentOutputs": {},
+      "schedule": null,
+      "scheduleChanges": [],
+      "finalizations": [],
+      "firstFinalization": null,
+      "legacyFacts": []
+    },
+    "availability": {},
+    "budget": [],
+    "expected": {
+      "firstResult": "not-finalized",
+      "availability": [
+        "missing",
+        "missing",
+        "missing",
+        "missing"
+      ]
+    }
+  },
+  {
+    "id": "budget-zero",
+    "origin": "simulated",
+    "description": "budget-zero",
+    "target": {
+      "workspaceId": "WS-V9-CONTRACT",
+      "roundId": "ROUND-V9-CONTRACT"
+    },
+    "opportunityId": "DEMO-O001",
+    "projectId": "DEMO-P001",
+    "workspace": {
+      "id": "SOLUTION-O001",
+      "opportunityId": "DEMO-O001",
+      "revision": 1,
+      "productNeedRevision": "NEED-1",
+      "versions": [],
+      "currentOutputs": {},
+      "schedule": null,
+      "scheduleChanges": [],
+      "finalizations": [],
+      "firstFinalization": null,
+      "legacyFacts": []
+    },
+    "availability": {},
+    "budget": [
+      {
+        "amountMinor": 0,
+        "currency": "CNY",
+        "comparable": true,
+        "reason": null
+      }
+    ],
+    "expected": {
+      "firstResult": "not-finalized",
+      "availability": [
+        "missing",
+        "missing",
+        "missing",
+        "missing"
+      ]
+    }
+  },
+  {
+    "id": "budget-missing",
+    "origin": "simulated",
+    "description": "budget-missing",
+    "target": {
+      "workspaceId": "WS-V9-CONTRACT",
+      "roundId": "ROUND-V9-CONTRACT"
+    },
+    "opportunityId": "DEMO-O001",
+    "projectId": "DEMO-P001",
+    "workspace": {
+      "id": "SOLUTION-O001",
+      "opportunityId": "DEMO-O001",
+      "revision": 1,
+      "productNeedRevision": "NEED-1",
+      "versions": [],
+      "currentOutputs": {},
+      "schedule": null,
+      "scheduleChanges": [],
+      "finalizations": [],
+      "firstFinalization": null,
+      "legacyFacts": []
+    },
+    "availability": {},
+    "budget": [
+      {
+        "amountMinor": null,
+        "currency": "CNY",
+        "comparable": false,
+        "reason": "预算待补"
+      }
+    ],
+    "expected": {
+      "firstResult": "not-finalized",
+      "availability": [
+        "missing",
+        "missing",
+        "missing",
+        "missing"
+      ]
+    }
+  },
+  {
+    "id": "budget-multi-currency",
+    "origin": "simulated",
+    "description": "budget-multi-currency",
+    "target": {
+      "workspaceId": "WS-V9-CONTRACT",
+      "roundId": "ROUND-V9-CONTRACT"
+    },
+    "opportunityId": "DEMO-O001",
+    "projectId": "DEMO-P001",
+    "workspace": {
+      "id": "SOLUTION-O001",
+      "opportunityId": "DEMO-O001",
+      "revision": 1,
+      "productNeedRevision": "NEED-1",
+      "versions": [],
+      "currentOutputs": {},
+      "schedule": null,
+      "scheduleChanges": [],
+      "finalizations": [],
+      "firstFinalization": null,
+      "legacyFacts": []
+    },
+    "availability": {},
+    "budget": [
+      {
+        "amountMinor": 10000,
+        "currency": "CNY",
+        "comparable": true,
+        "reason": null
+      },
+      {
+        "amountMinor": 20000,
+        "currency": "EUR",
+        "comparable": true,
+        "reason": null
+      },
+      {
+        "amountMinor": 30000,
+        "currency": "USD",
+        "comparable": true,
+        "reason": null
+      }
+    ],
+    "expected": {
+      "firstResult": "not-finalized",
+      "availability": [
+        "missing",
+        "missing",
+        "missing",
+        "missing"
+      ]
+    }
+  },
+  {
+    "id": "budget-incomparable",
+    "origin": "simulated",
+    "description": "budget-incomparable",
+    "target": {
+      "workspaceId": "WS-V9-CONTRACT",
+      "roundId": "ROUND-V9-CONTRACT"
+    },
+    "opportunityId": "DEMO-O001",
+    "projectId": "DEMO-P001",
+    "workspace": {
+      "id": "SOLUTION-O001",
+      "opportunityId": "DEMO-O001",
+      "revision": 1,
+      "productNeedRevision": "NEED-1",
+      "versions": [],
+      "currentOutputs": {},
+      "schedule": null,
+      "scheduleChanges": [],
+      "finalizations": [],
+      "firstFinalization": null,
+      "legacyFacts": []
+    },
+    "availability": {},
+    "budget": [
+      {
+        "amountMinor": 10000,
+        "currency": "CNY",
+        "comparable": false,
+        "reason": "比较范围或截止日缺失"
+      }
+    ],
+    "expected": {
+      "firstResult": "not-finalized",
+      "availability": [
+        "missing",
+        "missing",
+        "missing",
+        "missing"
+      ]
+    }
+  },
+  {
+    "id": "budget-overspent",
+    "origin": "simulated",
+    "description": "预算10000，模拟支出12000、超支2000；计算归后续预算票",
+    "target": {
+      "workspaceId": "WS-V9-CONTRACT",
+      "roundId": "ROUND-V9-CONTRACT"
+    },
+    "opportunityId": "DEMO-O001",
+    "projectId": "DEMO-P001",
+    "workspace": {
+      "id": "SOLUTION-O001",
+      "opportunityId": "DEMO-O001",
+      "revision": 1,
+      "productNeedRevision": "NEED-1",
+      "versions": [],
+      "currentOutputs": {},
+      "schedule": null,
+      "scheduleChanges": [],
+      "finalizations": [],
+      "firstFinalization": null,
+      "legacyFacts": []
+    },
+    "availability": {},
+    "budget": [
+      {
+        "amountMinor": 10000,
+        "currency": "CNY",
+        "comparable": true,
+        "reason": null
+      }
+    ],
+    "expected": {
+      "firstResult": "not-finalized",
+      "availability": [
+        "missing",
+        "missing",
+        "missing",
+        "missing"
+      ]
+    }
+  }
+]

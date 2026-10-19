@@ -6,6 +6,7 @@ import {
   coolingDays,
   needsTenderTeam,
   validDateRange,
+  threeMonthForecast,
   weightedAmount,
 } from '../src/app/core/rules';
 import { BASE_DATE, HANDOVER_TYPES } from '../src/app/core/models';
@@ -86,6 +87,39 @@ test('演示预测随阶段等级金额变化，金额不做币种混加', () =>
   assert.equal(weightedAmount({ ...sale, amount: 1200000 }), 432000);
   assert.equal(weightedAmount({ ...sale, grade: 'S' }), 400000);
   assert.equal(weightedAmount({ ...sale, currency: 'EUR' }), 360000);
+});
+test('三个月商机预测只按现有日期展示金额、容量、阶段和负责人，不给阶段或等级加权', () => {
+  const base = {
+    ...blankSales('open', 'c', 'opportunity'),
+    expectedDate: '2026-11-01',
+    amount: 1000000,
+    capacity: 12,
+    owner: '王销售',
+  };
+  const won = {
+    ...base,
+    id: 'won',
+    stage: '赢单' as const,
+    expectedDate: '2026-11-01',
+    incomeDate: '2026-12-01',
+  };
+  const lost = { ...base, id: 'lost', stage: '丢单' as const };
+  const outside = { ...base, id: 'outside', expectedDate: '2027-01-10' };
+  const forecast = threeMonthForecast([lost, outside, won, base]);
+  assert.deepEqual(
+    forecast.map(({ sale, date }) => [
+      sale.id,
+      date,
+      sale.amount,
+      sale.capacity,
+      sale.stage,
+      sale.owner,
+    ]),
+    [
+      ['open', '2026-11-01', 1000000, 12, '意向沟通', '王销售'],
+      ['won', '2026-12-01', 1000000, 12, '赢单', '王销售'],
+    ],
+  );
 });
 test('日期相反、空值和无效值无法作为有效计划范围', () => {
   assert.equal(validDateRange('2026-10-20', '2026-10-12'), false);

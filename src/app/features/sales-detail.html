@@ -1,15 +1,34 @@
 @if (record(); as s) {
+  @let gateMissing =
+    s.type === 'opportunity' && s.stage === '意向沟通' ? store.opportunityGateMissing(s.id) : [];
   <div class="crumb">
-    <a [routerLink]="s.type === 'lead' ? '/sales/leads' : '/sales/opportunities'">{{
-      s.type === 'lead' ? '线索管理' : '商机管理'
-    }}</a
-    ><app-icon name="chevron" /><span>{{ s.id }}</span>
+    @if (returnTo()) {
+      <button class="text-link" type="button" (click)="returnToDepartmentRecords()">
+        {{ returnLabel() }}
+      </button>
+    } @else {
+      <a
+        [routerLink]="
+          isSolutionEntry()
+            ? '/sales/solutions'
+            : s.type === 'lead'
+              ? '/sales/leads'
+              : '/sales/opportunities'
+        "
+        >{{ isSolutionEntry() ? '方案设计' : s.type === 'lead' ? '线索管理' : '商机管理' }}</a
+      ><app-icon name="chevron" /><span>{{ s.id }}</span>
+    }
   </div>
   <div class="page-heading">
     <div>
       <h1>
         {{ s.projectName || '待补项目名称' }}
-        <app-badge [text]="s.type === 'lead' ? s.status : s.stage" />
+        @if (s.type === 'lead') {
+          <app-badge [text]="s.crmStatus || '状态待核对'" />
+          <app-badge [text]="s.followUpStatus || s.status" />
+        } @else {
+          <app-badge [text]="s.stage" />
+        }
       </h1>
       <p>
         {{ store.customer(s.customerId)?.name }} · {{ s.id }} ·
@@ -17,26 +36,41 @@
       </p>
     </div>
     <div class="header-actions">
-      <button class="btn" [disabled]="!store.salesEditable()" (click)="forms.editSales(s)">
-        <app-icon name="edit" />编辑信息
-      </button>
+      <button class="btn" (click)="forms.editSales(s)"><app-icon name="edit" />编辑信息</button>
+      @if (s.type === 'opportunity') {
+        <a class="btn" [routerLink]="['/sales/solutions', s.id]">方案设计</a>
+        <a class="btn" [routerLink]="['/sales/quotes', s.id]">报价议价</a>
+        @if (s.stage === '赢单') {
+          <a class="btn" routerLink="/contracts">合同管理</a>
+          @if (store.contractForOpportunity(s.id); as contract) {
+            <a class="btn" [routerLink]="['/contracts', contract.id, 'orders']">销售订单历史（只读）</a>
+          }
+        }
+      }
       @if (s.type === 'lead') {
-        <button class="btn primary" [disabled]="!store.salesEditable()" (click)="convert()">
-          {{ s.convertedTo ? '查看已转换商机' : '转商机' }}<app-icon name="arrow" />
+        <button
+          class="btn"
+          [disabled]="s.conversionKind === 'opportunity'"
+          (click)="convertCustomer()"
+        >
+          {{ s.conversionKind === 'customer' ? '已转客户' : '仅转客户' }}
         </button>
-      } @else if (s.stage === '赢单') {
         <button
           class="btn primary"
-          [disabled]="!store.salesEditable() && store.role() !== 'pm'"
-          (click)="bridge()"
+          [disabled]="s.conversionKind === 'opportunity'"
+          (click)="convert()"
         >
+          转为待评估商机<app-icon name="arrow" />
+        </button>
+      } @else if (s.stage === '赢单') {
+        <button class="btn primary" [disabled]="!store.canOperateSale(s)" (click)="bridge()">
           创建 / 打开交付项目<app-icon name="arrow" />
         </button>
-        <button class="btn" [disabled]="store.role() !== 'pm'" (click)="associateDraft()">关联已有项目草稿</button>
+        <button class="btn" (click)="associateDraft()">关联已有项目草稿</button>
       } @else if (s.stage !== '丢单') {
         <button
           class="btn primary"
-          [disabled]="!store.salesEditable()"
+          [disabled]="!store.canOperateSale(s)"
           (click)="s.stage === '合同谈判' ? forms.close(s.id, '赢单') : store.advance(s.id)"
         >
           {{ s.stage === '合同谈判' ? '记录赢单' : '完成本步，进入下一步'
@@ -46,8 +80,27 @@
     </div>
   </div>
   @if (s.type === 'lead' && leadMissing().length) {
-    <div class="inline-alert warning"><app-icon name="info"/><span>转商机前需要补齐：</span>
-      @for (item of leadMissing(); track item) { <button class="text-link" (click)="locateLeadItem(item)">{{ item }}</button> }
+    <div class="inline-alert warning">
+      <app-icon name="info" /><span>转商机前需要补齐：</span>
+      @for (item of leadMissing(); track item) {
+        <button class="text-link" (click)="locateLeadItem(item)">{{ item }}</button>
+      }
+    </div>
+  }
+  @if (s.type === 'lead' && possibleLeadMatches().length) {
+    <div class="inline-alert warning">
+      <div>
+        <strong>发现可能关联的在途线索，请人工核对归属和项目：</strong>
+        @for (candidate of possibleLeadMatches(); track candidate.id) {
+          <p>
+            <a class="text-link" [routerLink]="['/sales/detail', candidate.id]"
+              >{{ candidate.id }} · {{ candidate.projectName || '项目名称待补' }}</a
+            >
+            · {{ leadMatchBasis(candidate) }} · 负责人 {{ candidate.owner || '待分配' }}
+          </p>
+        }
+        <span>系统不会自动合并、抢占负责人或裁定归属。请核对后再继续转换。</span>
+      </div>
     </div>
   }
   <div class="step-guide">
@@ -62,10 +115,31 @@
       {{ s.type === 'lead' ? '去补资料' : '去记录跟进' }}
     </button>
   </div>
-  @if (guideMode()) { <app-mainline-guide /> }
   @if (s.needsReview) {
     <div class="inline-alert warning">
       <app-icon name="info" /><span>关键资料已变化，需重新复核。请到资料区补齐后再推进。</span>
+    </div>
+  }
+  @if (
+    s.customerCountrySnapshot &&
+    store.customer(s.customerId)?.country !== s.customerCountrySnapshot &&
+    s.customerCountryConfirmed !== store.customer(s.customerId)?.country &&
+    (s.type === 'lead' ? !s.convertedTo : s.stage !== '丢单' && s.stage !== '赢单')
+  ) {
+    <div class="inline-alert warning">
+      <span
+        >客户国家已变化：业务记录 {{ s.customerCountrySnapshot }}，客户当前
+        {{ store.customer(s.customerId)?.country }}。请核对后确认，已结束历史不会被改写。</span
+      >
+      <button class="btn small" (click)="confirmCustomerCountryChange()">确认当前国家</button>
+    </div>
+  }
+  @if (gateMissing.length) {
+    <div class="gate-missing" role="alert" aria-label="进入方案报价前的门禁缺项">
+      <strong>进入下一阶段前需逐项补齐：</strong>
+      @for (item of gateMissing; track item) {
+        <span>缺少：{{ item }}</span>
+      }
     </div>
   }
   <div class="tabs">
@@ -79,13 +153,7 @@
         <section class="panel section-spacing">
           <div class="panel-head">
             <h2>基础信息</h2>
-            <button
-              class="text-link"
-              [disabled]="!store.salesEditable()"
-              (click)="forms.editSales(s)"
-            >
-              补充 / 修改
-            </button>
+            <button class="text-link" (click)="forms.editSales(s)">补充 / 修改</button>
           </div>
           <div class="details-grid">
             <div>
@@ -96,6 +164,22 @@
               <div class="detail-label">国家 / 地区</div>
               <div class="detail-value">{{ store.customer(s.customerId)?.country }}</div>
             </div>
+            @if (s.customerProfileAtConversion; as customerSnapshot) {
+              <div class="full">
+                <div class="detail-label">转商机时读取的客户资料</div>
+                <div class="detail-value">
+                  {{ customerSnapshot.name }} · {{ customerSnapshot.country }} ·
+                  {{ customerSnapshot.region || '地区待补' }} ·
+                  {{ customerSnapshot.status || '状态待补' }} ·
+                  {{ customerSnapshot.industry || '行业角色待补' }} ·
+                  {{ customerSnapshot.employeeSize || '人员规模待补' }}<br />
+                  {{ customerSnapshot.email || '客户邮箱待补' }} ·
+                  {{ customerSnapshot.address || '客户地址待补' }} ·
+                  {{ customerSnapshot.owner || '负责人待补' }}<br />
+                  {{ customerSnapshot.basicInfo || '客户基本信息待补' }}
+                </div>
+              </div>
+            }
             <div>
               <div class="detail-label">意向产品</div>
               <div class="detail-value">储能系统</div>
@@ -128,7 +212,12 @@
             </div>
             <div>
               <div class="detail-label">线索来源</div>
-              <div class="detail-value">{{ s.source }}</div>
+              <div class="detail-value">
+                {{
+                  s.crmSource ||
+                    (s.sourceReviewRequired ? s.legacySource + '（来源待确认）' : s.source)
+                }}
+              </div>
             </div>
             <div class="full">
               <div class="detail-label">客户及项目背景</div>
@@ -138,7 +227,7 @@
             </div>
             @if (s.type === 'opportunity') {
               <div>
-                <div class="detail-label">人工项目等级</div>
+                <div class="detail-label">人工判定等级</div>
                 <div class="detail-value"><app-badge [text]="s.grade || '待选择'" /></div>
               </div>
               <div>
@@ -149,12 +238,57 @@
                 <div class="detail-label">贸易条款</div>
                 <div class="detail-value">{{ s.tradeTerm || '可后补' }}</div>
               </div>
+              <div>
+                <div class="detail-label">功率 (MW)</div>
+                <div class="detail-value">{{ s.power || '待确认' }}</div>
+              </div>
+              <div>
+                <div class="detail-label">电芯需求</div>
+                <div class="detail-value">{{ s.cellDemand || '待确认' }}</div>
+              </div>
+              <div>
+                <div class="detail-label">所在区域</div>
+                <div class="detail-value">{{ s.projectRegion || '待确认' }}</div>
+              </div>
               <div class="full">
                 <div class="detail-label">规则商机名称预览</div>
                 <div class="detail-value">{{ store.salesName(s) }}</div>
               </div>
             }
           </div>
+        </section>
+        <section class="panel section-spacing padded">
+          <div class="panel-head">
+            <h2>非标CRM 跟进字段快照</h2>
+            <app-badge [text]="s.crmFollowUpSnapshot ? '只读模拟快照' : '快照待补'" />
+          </div>
+          @if (s.crmFollowUpSnapshot; as followUp) {
+            <div class="details-grid">
+              <div>
+                <div class="detail-label">最后跟进日期</div>
+                <div class="detail-value">{{ followUp.followUpDate || '暂无记录' }}</div>
+              </div>
+              <div>
+                <div class="detail-label">总跟进次数</div>
+                <div class="detail-value">{{ followUp.followUpCount }}</div>
+              </div>
+              <div>
+                <div class="detail-label">距上次跟进天数</div>
+                <div class="detail-value">{{ followUp.daysSinceLastFollowUp }}</div>
+              </div>
+              <div>
+                <div class="detail-label">快照来源 / 日期</div>
+                <div class="detail-value">{{ followUp.source }} · {{ followUp.snapshotDate }}</div>
+              </div>
+            </div>
+          } @else {
+            <p class="fine-print">
+              当前对象暂无非标CRM跟进字段快照。页面不会读取或更改非标CRM业务记录。
+            </p>
+          }
+          <p class="fine-print">
+            跟进预警阈值 7 / 14 / 30 天为模拟参考；跟进提醒不会改变销售人工评级。
+          </p>
         </section>
         @if (s.type === 'opportunity') {
           <section class="panel section-spacing">
@@ -188,9 +322,10 @@
               </p>
               @if (s.closedDate) {
                 <p>
-                  关闭日期：{{ s.closedDate }} · 确认收入日期：{{
-                    s.incomeDate || '未记录，不自动推断'
-                  }}
+                  关闭日期：{{ s.closedDate }}
+                  @if (s.stage === '赢单') {
+                    · 确认收入日期：{{ s.incomeDate || '未记录，不自动推断' }}
+                  }
                 </p>
               }
             </div>
@@ -198,13 +333,13 @@
               @if (s.stage !== '赢单' && s.stage !== '丢单') {
                 <button
                   class="btn"
-                  [disabled]="!store.salesEditable()"
+                  [disabled]="!store.canOperateSale(s)"
                   (click)="forms.activity(s.id)"
                 >
                   <app-icon name="plus" />记录本轮沟通</button
                 ><button
                   class="btn danger"
-                  [disabled]="!store.salesEditable()"
+                  [disabled]="!store.canOperateSale(s)"
                   (click)="forms.close(s.id, '丢单')"
                 >
                   记录丢单
@@ -216,16 +351,33 @@
           <section class="panel padded">
             <div class="section-heading"><h3>线索处理</h3></div>
             <p style="font-size: 12px">
-              无预算可选择暂缓，重复或虚假线索可归档；原因留存，不直接删除记录。
+              可暂缓或归档线索；归档原因选项尚待核验，先以文字记录，历史不会删除。
             </p>
             <div class="row-actions">
-              <button class="btn" [disabled]="!store.salesEditable()" (click)="archive('暂缓跟进')">
-                暂缓跟进</button
-              ><button class="btn" [disabled]="!store.salesEditable()" (click)="archive('已归档')">
-                归档线索</button
-              ><button class="btn" [disabled]="!store.salesEditable()" (click)="archive('待跟进')">
-                恢复跟进
-              </button>
+              @if (!s.convertedTo && s.crmStatus !== '无效线索' && s.crmStatus !== '退回公海') {
+                <button class="btn" (click)="forms.assignLead(s)">分配负责人</button>
+              }
+              @if (!s.convertedTo) {
+                <button
+                  class="btn"
+                  [disabled]="!store.canOperateSale(s)"
+                  (click)="archive('暂缓跟进')"
+                >
+                  暂缓跟进</button
+                ><button
+                  class="btn"
+                  [disabled]="!store.canOperateSale(s)"
+                  (click)="archive('已归档')"
+                >
+                  归档线索</button
+                ><button
+                  class="btn"
+                  [disabled]="!store.canOperateSale(s)"
+                  (click)="archive('待跟进')"
+                >
+                  恢复跟进
+                </button>
+              }
             </div>
           </section>
         }
@@ -244,12 +396,64 @@
           </div>
           <div><span class="label">电子邮箱</span>{{ store.contact(s)?.email || '待补充' }}</div>
           <div><span class="label">联系电话</span>{{ store.contact(s)?.phone || '待补充' }}</div>
-          <button
-            class="btn small"
-            [disabled]="!store.salesEditable()"
-            (click)="forms.customer(store.customer(s.customerId))"
+          <div>
+            <span class="label">平台负责人身份</span>
+            {{ store.identityName(s.ownerPersonId) }} · {{ s.owner }}
+          </div>
+          <div>
+            <span class="label">非标CRM来源负责人</span>
+            {{
+              s.sourceOwner
+                ? s.sourceOwner.name + ' · ' + s.sourceOwner.id + '（模拟身份）'
+                : '来源未提供，不按姓名推断身份'
+            }}
+          </div>
+          <div>
+            <span class="label">非标CRM来源创建人</span>
+            {{
+              s.sourceCreator
+                ? s.sourceCreator.name + ' · ' + s.sourceCreator.id + '（模拟身份）'
+                : '来源未提供'
+            }}
+          </div>
+          @if (s.type === 'lead' && s.crmSnapshot) {
+            <div>
+              <span class="label">来源与快照日期</span>
+              {{ s.crmSnapshot.source }} · {{ s.crmSnapshot.snapshotDate }}（演示快照）<br />
+              @for (sample of s.crmSnapshot.dateExamples || []; track sample.field) {
+                <div>
+                  {{ sample.field }}：{{ sample.sourceValue }} → {{ sample.displayValue }}；{{
+                    sample.note
+                  }}
+                </div>
+              }
+            </div>
+          }
+          @for (note of s.crmQualityNotes || []; track note) {
+            <div class="inline-alert warning">来源数据提示：{{ note }}</div>
+          }
+          @if (s.type === 'lead') {
+            <div class="inline-alert warning">
+              外部已知问题：2026-10-13历史核验中，“客户基础信息”列118条均未获取；配置原因待外部确认，不代表当前实时状态。空公式列“线索跟进记录信息”未纳入演示模型。
+            </div>
+          }
+          <a
+            class="text-link"
+            [routerLink]="['/sales/customers', s.customerId]"
+            [queryParams]="{
+              customer: s.customerId,
+              fromLead: s.type === 'lead' ? s.id : s.leadId,
+            }"
+            >查看关联客户档案</a
           >
-            编辑客户 / 联系人
+          <a
+            class="text-link"
+            [routerLink]="['/sales/contacts']"
+            [queryParams]="{ customer: s.customerId }"
+            >查看关联联系人</a
+          >
+          <button class="btn small" (click)="forms.customer(store.customer(s.customerId))">
+            编辑客户
           </button>
         </section>
         <section class="panel source-summary section-spacing">
@@ -278,6 +482,157 @@
         }
       </aside>
     </div>
+    @if (s.type === 'opportunity') {
+      <section class="panel padded space-top">
+        <div class="panel-head">
+          <div>
+            <h2>产品需求与技术初判</h2>
+            <p>需求修订 {{ s.productNeedRevision || 1 }} · 等级由销售手动维护</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn small" (click)="editProductNeed()">新增产品需求</button>
+            <button class="btn small" (click)="assessTechnical()">记录技术初判</button>
+            <button
+              class="btn small primary"
+              [disabled]="!!s.submittedAt"
+              (click)="store.submitOpportunity(s.id)"
+            >
+              {{ s.submittedAt ? '已有效提交' : '有效提交' }}
+            </button>
+            @if (s.stage === '丢单' && s.technicalAssessments?.at(-1)?.result === '不满足') {
+              <button class="btn small" (click)="createOpportunityAfterAssessment()">
+                需求变化，另建商机
+              </button>
+            }
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>产品编码</th>
+                <th>产品名称</th>
+                <th>数量</th>
+                <th>单位</th>
+                <th>行ID</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (need of s.productNeeds || []; track need.id) {
+                <tr>
+                  <td>{{ need.model }}</td>
+                  <td>{{ need.name || '—' }}</td>
+                  <td>{{ need.quantity }}</td>
+                  <td>{{ need.unit }}</td>
+                  <td>{{ need.id }}</td>
+                  <td>
+                    <button class="text-link" (click)="editProductNeed(need)">编辑</button> ·
+                    <button class="text-link" (click)="store.removeProductNeed(s.id, need.id)">
+                      删除
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6">尚无产品需求行</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (s.productNeedHistory?.length) {
+          <section class="section-spacing">
+            <div class="section-heading"><h3>产品需求修订历史</h3></div>
+            @for (revision of s.productNeedHistory; track revision.revision) {
+              <div class="timeline-item">
+                <span class="avatar">{{ revision.revision }}</span>
+                <div>
+                  <h4>修订 {{ revision.revision }} · {{ revision.changedAt }}</h4>
+                  <p>{{ revision.changeDescription }} · {{ revision.operator }}</p>
+                  <small>
+                    @for (need of revision.productNeeds; track need.id) {
+                      {{ need.model }} {{ need.name || '—' }} {{ need.quantity }}{{ need.unit }} ·
+                      行 {{ need.id }}；
+                    } @empty {
+                      此修订无产品需求行
+                    }
+                  </small>
+                </div>
+              </div>
+            }
+          </section>
+        }
+        @for (assessment of s.technicalAssessments || []; track assessment.id) {
+          <p class="fine-print">
+            @if (assessment.requirementRevision !== (s.productNeedRevision || 1)) {
+              <app-badge text="历史初判，需求已变更" />
+            }
+            初判 {{ assessment.result }} · 负责人 {{ assessment.owner }} · 需求修订
+            {{ assessment.requirementRevision }} · 证据
+            @for (evidenceId of assessment.evidenceAttachmentIds; track evidenceId) {
+              {{
+                store.attachments(s.id).find((item) => item.id === evidenceId)?.name || evidenceId
+              }}；
+            }
+            · {{ assessment.opinion }}
+          </p>
+        } @empty {
+          <p class="fine-print">尚无技术初判；线索转换和附件上传不会自动有效提交或创建PMO待办。</p>
+        }
+      </section>
+    }
+    @if (s.type === 'opportunity') {
+      <section class="panel space-top">
+        <div class="panel-head">
+          <div>
+            <h2>商机粗计划</h2>
+            <p>复制为项目计划后独立维护；修改项目计划不会回写这里。</p>
+          </div>
+          <button class="btn primary" (click)="editRoughPlan()">新增计划节点</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>任务</th>
+                <th>负责人</th>
+                <th>计划窗口</th>
+                <th>天数 / 前置</th>
+                <th>来源</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (plan of s.opportunityRoughPlans || []; track plan.id) {
+                <tr>
+                  <td>
+                    {{ plan.wbsCode || 'WBS待补' }} · {{ plan.name }}
+                    <p>{{ plan.id }} · {{ plan.note || plan.relationNote }}</p>
+                  </td>
+                  <td>{{ plan.owner }}</td>
+                  <td>
+                    {{ plan.start }} 至 {{ plan.end }}
+                    <p>{{ plan.weekWindow || '周窗口待补' }}</p>
+                  </td>
+                  <td>
+                    {{ plan.durationDays ?? '待补' }}天 · {{ plan.predecessor || '无 / 待核' }}
+                  </td>
+                  <td>{{ plan.sourceReference }}</td>
+                  <td><button class="text-link" (click)="editRoughPlan(plan)">编辑</button></td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="empty">
+                    尚无商机粗计划，可按已用离线模板添加；不会自动排产。
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
   }
   @if (tab() === '沟通') {
     <section class="panel">
@@ -288,9 +643,7 @@
         </div>
         <button
           class="btn primary"
-          [disabled]="
-            !store.salesEditable() && store.role() !== 'solution' && store.role() !== 'pm'
-          "
+          [disabled]="!store.canOperateSale(s)"
           (click)="forms.activity(s.id)"
         >
           <app-icon name="plus" />新增沟通记录
@@ -320,12 +673,21 @@
   }
   @if (tab() === '资料') {
     <section class="panel">
+      <p class="fine-print">
+        TIC在本Demo中对应需求导入表；原始TIC文件未在示例资料包中提供。Technical
+        Proposal沿用既有核心技术方案版本，不额外创建资料模块。
+      </p>
       <app-documents
         [entityId]="s.id"
         [kinds]="
           s.type === 'lead'
             ? ['需求导入表', '沟通纪要']
-            : ['需求导入表', '方案报价样例', '沟通纪要']
+            : ['需求导入表', '核心技术方案', 'BOM清单', '单线图（SLD）', '衰减曲线', '沟通纪要']
+        "
+        [title]="
+          s.type === 'lead'
+            ? '需求导入表（TIC）与沟通资料'
+            : '需求导入表（TIC）、Technical Proposal、BOM、SLD 与衰减资料'
         "
       />
     </section>
@@ -334,26 +696,42 @@
     <div class="inline-alert">
       <app-icon name="info" /><span>{{
         needsTeam()
-          ? '本项目满足投标且A/S条件，先由负责人指定，再由成员确认。'
-          : '当前条件不要求重点投标团队；下方可查看已留存的协作信息。'
+          ? '本商机同时满足投标与A/S条件，协作人员和部门工作均需分别留痕。'
+          : '普通商机也可按需要指定协作人员；不强制完整投标团队。'
       }}</span>
     </div>
+    <section class="panel padded section-spacing">
+      <div class="panel-head">
+        <div>
+          <h2>PMO 指派</h2>
+          <p>有效提交后处理；重复指定不会创建重复待办。</p>
+        </div>
+        <button class="btn primary" [disabled]="!s.submittedAt" (click)="assignPM(s)">
+          {{ s.pmoAssignment ? '变更PM' : '手动指定PM' }}
+        </button>
+      </div>
+      @if (s.pmoAssignment; as assignment) {
+        <p>{{ assignment.pmName }} · {{ assignment.assignedAt }}</p>
+        <p class="fine-print">{{ assignment.window }}（模拟窗口，不锁定资源或承诺真实可用性）</p>
+      } @else {
+        <p class="fine-print">PMO 待分配；名单与窗口为模拟展示，由 PMO 手动选择。</p>
+      }
+    </section>
     <section class="panel">
       <div class="panel-head">
         <div>
-          <h2>投标协作团队</h2>
-          <p>{{ confirmCount() }} / {{ s.team.length }} 已确认 · G1：{{ s.g1 }}</p>
+          <h2>协作人员与部门任务</h2>
+          <p>
+            {{ confirmCount() }} / {{ s.team.length }} 人员已确认参与；部门任务单独记录完成情况。
+          </p>
+          @if (!s.departmentScopeConfirmed) {
+            <p class="fine-print">推进前需手动确认哪些部门适用；请打开“手动选择协作人员”。</p>
+          } @else if (!s.departmentTasks?.length) {
+            <p class="fine-print">已确认当前无需协作部门；如需部门参与，可手动添加适用部门。</p>
+          }
         </div>
         <div class="row-actions">
-          <button class="btn" [disabled]="store.role() !== 'pmo'" (click)="forms.assignTeam(s.id)">
-            指定团队</button
-          ><button
-            class="btn small"
-            [disabled]="store.role() !== 'pmo' && store.role() !== 'manager'"
-            (click)="g1()"
-          >
-            查看G1模拟结果
-          </button>
+          <button class="btn" (click)="forms.assignTeam(s.id)">手动选择协作人员</button>
         </div>
       </div>
       @for (member of s.team; track member.id) {
@@ -369,34 +747,59 @@
             </p>
           </div>
           <app-badge [text]="member.confirmed ? '已确认' : '待确认'" />
-          @if (member.role === store.role()) {
-            <button
-              class="btn small"
-              [disabled]="member.confirmed"
-              (click)="store.confirmTeam(s.id, member.id)"
-            >
-              确认参与
-            </button>
-          } @else {
-            <button class="text-link" (click)="store.setRole(member.role)">切换角色继续</button>
-          }
+          <button
+            class="btn small"
+            [disabled]="member.confirmed"
+            (click)="store.confirmTeam(s.id, member.id)"
+          >
+            确认参与
+          </button>
         </div>
       } @empty {
         <div class="empty">无需普遍强配团队。重点投标可切换负责人指定人员。</div>
       }
     </section>
+    @if (s.departmentTasks?.length) {
+      <section class="panel space-top">
+        <div class="panel-head"><h2>部门任务完成情况</h2></div>
+        @for (task of s.departmentTasks; track task.id) {
+          <div class="team-member">
+            <div class="grow">
+              <h3>{{ task.department }} · {{ task.name }}</h3>
+              <p>
+                {{
+                  task.completedBy
+                    ? task.completedBy + ' · ' + task.completedAt
+                    : '参与确认不代表任务完成'
+                }}
+              </p>
+            </div>
+            <app-badge [text]="task.status" />
+            <button
+              class="btn small"
+              [disabled]="task.status === '已完成'"
+              (click)="completeDepartmentTask(s, task.id)"
+            >
+              记录任务完成
+            </button>
+          </div>
+        }
+      </section>
+    }
     <section class="panel space-top padded">
       <div class="section-heading">
         <h3>方案与售前交付初判</h3>
-        <button class="btn small" [disabled]="store.role() !== 'pm'" (click)="opinion()">
-          记录交付初判
-        </button>
+        <button class="btn small" (click)="opinion()">记录交付初判</button>
       </div>
       <p style="font-size: 12px">
         {{ s.deliveryOpinion || '待拟任PM补充，未知事项可以标为待确认。' }}
       </p>
       <p class="fine-print">{{ s.resourceWindow || '工期与资源窗口待补' }}</p>
-      <app-documents [entityId]="s.id" [kinds]="['方案报价样例']" title="方案协作资料" />
+      <app-documents
+        [entityId]="s.id"
+        [kinds]="['核心技术方案']"
+        title="Technical Proposal（核心技术方案）协作资料"
+      />
     </section>
   }
   @if (tab() === '客户角色') {
@@ -406,7 +809,7 @@
           <h2>客户角色与决策信息</h2>
           <p>后续逐步补充，可兼任、可未知，不强制五类齐全。</p>
         </div>
-        <button class="btn" [disabled]="!store.salesEditable()" (click)="editRole()">
+        <button class="btn" [disabled]="!store.canOperateSale(s)" (click)="editRole()">
           <app-icon name="plus" />补充客户角色
         </button>
       </div>
@@ -431,14 +834,14 @@
                 <td>
                   <button
                     class="text-link"
-                    [disabled]="!store.salesEditable()"
+                    [disabled]="!store.canOperateSale(s)"
                     (click)="editRole(r)"
                   >
                     编辑</button
                   ><button
                     class="icon-btn"
                     aria-label="删除客户角色"
-                    [disabled]="!store.salesEditable()"
+                    [disabled]="!store.canOperateSale(s)"
                     (click)="removeRole(r)"
                   >
                     <app-icon name="trash" />
@@ -462,7 +865,7 @@
           <h2>交易条件与财务待确认事项</h2>
           <p>仅固定案例说明，不进行真实税费自动判断。</p>
         </div>
-        <button class="btn" [disabled]="!store.salesEditable()" (click)="tax()">
+        <button class="btn" [disabled]="!store.canOperateSale(s)" (click)="tax()">
           查看 / 补充演示案例
         </button>
       </div>
@@ -484,6 +887,9 @@
       </div>
     </section>
   }
+  @if ((tab() === '方案' || tab() === '服务条件') && s.type === 'opportunity') {
+    <app-solution-service [opportunityId]="s.id" [section]="tab()" />
+  }
   @if (tab() === '报价' && s.type === 'opportunity') {
     <app-quote-workspace [opportunityId]="s.id" />
   }
@@ -491,6 +897,38 @@
     <section class="panel">
       <div class="panel-head"><h2>操作历史</h2></div>
       <div class="timeline">
+        @for (event of store.operationEvents(s.id); track event.id) {
+          <div class="timeline-item">
+            <span class="avatar">{{ event.operator.slice(0, 1) }}</span>
+            <div>
+              <h4>
+                {{ event.location.action }} · {{ event.location.module }} /
+                {{ event.location.section }}
+              </h4>
+              @if (event.legacy) {
+                <small class="legacy-history-note"
+                  >旧版历史迁移 · 缺失内容显示为“旧版未记录”，不计入当前轮进度</small
+                >
+              }
+              <small>
+                {{ event.operator }} · 原负责人：{{ event.owner || '未记录' }} ·
+                {{ event.occurredAt }} · 数据版本 {{ event.sourceVersion }} →
+                {{ event.dataVersion }}
+              </small>
+              <p>
+                本轮 {{ event.roundId }} · 主线 {{ event.mainlineId }} ·
+                {{ event.location.objectType }} {{ event.location.objectId }} ·
+                {{ event.location.department }}
+              </p>
+              @for (change of event.changes; track change.field) {
+                <p>
+                  {{ change.field }}：{{ operationValue(change.before) }} →
+                  {{ operationValue(change.after) }}
+                </p>
+              }
+            </div>
+          </div>
+        }
         @for (h of store.history(s.id); track h.id) {
           <div class="timeline-item">
             <span class="avatar">{{ h.operator.slice(0, 1) }}</span>

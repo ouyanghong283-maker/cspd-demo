@@ -1,0 +1,85 @@
+<section class="tracking-visuals" aria-label="追踪看板数据图">
+  <figure class="chart risk-chart">
+    <figcaption>
+      <h2>待处理事项构成</h2>
+      <p>与下方列表一致 · 点击类别筛选</p>
+    </figcaption>
+    <div class="risk-body">
+      <div class="donut" [style.background]="charts().gradient" aria-hidden="true">
+        <div>
+          <strong>{{ charts().total }}</strong
+          ><span>当前事项</span>
+        </div>
+      </div>
+      <ul class="legend" aria-label="事项分类数量">
+        @for (risk of charts().risks; track risk.kind) {
+          <li>
+            <button type="button" (click)="selectKind.emit(risk.kind)" [disabled]="!risk.count">
+              <i [style.background]="risk.color"></i><span>{{ risk.label }}</span
+              ><strong>{{ risk.count }}<small>项</small></strong>
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+    <p class="note">含其他计划类型与应收事项；上方预警指标仅统计客户主节点与内部WBS。</p>
+  </figure>
+  <figure class="chart projects-chart">
+    <figcaption>
+      <h2>各项目待处理数量</h2>
+      <p>按数量排序 · 点击项目筛选</p>
+    </figcaption>
+    <div class="project-bars">
+      @for (project of charts().projects; track project.id) {
+        <button
+          class="project-row"
+          type="button"
+          (click)="selectProject.emit(project.id)"
+          [attr.aria-label]="project.name + '，' + project.total + '项，筛选此项目'"
+        >
+          <span class="project-name" [title]="project.name">{{ project.name }}</span>
+          <span class="bar-track"
+            ><span class="stack" [style.width.%]="(project.total / charts().projectMax) * 100">
+              @for (risk of project.risks; track risk.kind) {
+                @if (risk.count) {
+                  <i
+                    [style.width.%]="(risk.count / project.total) * 100"
+                    [style.background]="risk.color"
+                    [title]="risk.label + '：' + risk.count + '项'"
+                  ></i>
+                }
+              }</span></span
+          ><strong>{{ project.total }}</strong>
+        </button>
+      } @empty {
+        <p class="empty-chart">当前筛选下没有待处理事项。</p>
+      }
+    </div>
+    <p class="note">颜色与左侧类别一致，包含当前筛选下的全部项目。</p>
+  </figure>
+  <figure class="chart due-chart">
+    <figcaption>
+      <h2>待处理计划到期分布</h2>
+      <p>以 {{ observationDate() }} 为观察日 · 单位：项</p>
+    </figcaption>
+    <div class="due-bars" role="list" aria-label="计划到期分布">
+      @for (bucket of charts().due; track bucket.label) {
+        <div
+          class="due-column"
+          role="listitem"
+          [attr.aria-label]="bucket.label + '：' + bucket.count + '项'"
+        >
+          <strong>{{ bucket.count }}</strong>
+          <div class="due-track">
+            <i
+              [style.height.%]="(bucket.count / charts().dueMax) * 100"
+              [style.background]="bucket.color"
+            ></i>
+          </div>
+          <span>{{ bucket.label }}</span>
+        </div>
+      }
+    </div>
+    <p class="note">按计划结束日分组，不含应收账款与已完成事项。无事项的分组显示0。</p>
+  </figure>
+</section>

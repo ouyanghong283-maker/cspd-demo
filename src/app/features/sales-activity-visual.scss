@@ -1,0 +1,106 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.activity-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.activity-summary strong {
+  font-family: 'Aptos', 'Segoe UI', Arial, 'Noto Sans SC', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  letter-spacing: -1.1px;
+}
+.activity-summary small {
+  font-family: inherit;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0;
+  margin-left: 6px;
+  color: #63738a;
+}
+.activity-summary {
+  padding: 0 22px;
+}
+.activity-summary strong {
+  font-size: 25px;
+}
+.activity-summary > span {
+  font-size: 11px;
+  color: var(--dashboard-muted);
+}
+.activity-summary > .positive {
+  color: #16836b;
+}
+.activity-chart {
+  display: flex;
+  align-items: end;
+  gap: 17px;
+  padding: 10px 28px 14px;
+  height: 105px;
+}
+.activity-column {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  height: 100%;
+  color: #697b94;
+  font-size: 11px;
+}
+.activity-bar-space {
+  width: 50%;
+  flex: 1;
+  display: flex;
+  align-items: end;
+}
+.activity-bar-space i {
+  display: block;
+  width: 100%;
+  background: #b7c8f2;
+  border-radius: 3px 3px 0 0;
+}
+.activity-bar-space .latest {
+  background: #315dde;
+}
+.activity-column small {
+  font-size: 10px;
+  margin-top: 4px;
+}
+.chart-tooltip {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #243650;
+  color: #fff;
+  padding: 7px 10px;
+  border-radius: 5px;
+  white-space: nowrap;
+  z-index: 2;
+  pointer-events: none;
+}
+.activity-column:hover .chart-tooltip {
+  display: block;
+}
+.activity-column:focus-visible .chart-tooltip {
+  display: block;
+}
+.activity-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.activity-column:first-child .chart-tooltip {
+  transform: translateX(-15%);
+}
+.activity-column:last-child .chart-tooltip {
+  transform: translateX(-85%);
+}

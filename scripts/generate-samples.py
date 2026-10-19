@@ -15,15 +15,6 @@ for name,title in names.items():
  data+=f'trailer\n<< /Size {len(objects)+1} /Root 1 0 R >>\nstartxref\n{start}\n%%EOF'.encode()
  (root/'public/samples'/f'{name}.pdf').write_bytes(data)
 print('10 PDF samples created',flush=True)
-chars=set(''.join(f.read_text() for f in (root/'src').rglob('*') if f.suffix in ['.ts','.html','.scss']))
-text=''.join(sorted(c for c in chars if ord(c)>32))
-url='https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap&text='+urllib.parse.quote(text)
-try:
- css=urllib.request.urlopen(url).read().decode()
- fonts=root/'public/fonts';fonts.mkdir(exist_ok=True)
- urls=list(dict.fromkeys(re.findall(r'url\(([^)]+)\)',css)))
- for i,source in enumerate(urls):
-  name=f'noto-sans-sc-{i}.woff2';(fonts/name).write_bytes(urllib.request.urlopen(source).read());css=css.replace(source,f'/fonts/{name}')
- (fonts/'fonts.css').write_text(css)
- print('Local Chinese fonts downloaded:',len(urls),flush=True)
-except Exception as e:print('Font download unavailable:',e,flush=True)
+# Keep complete local fonts rather than recreating a text-only subset.
+import runpy
+runpy.run_path(str(root/'scripts/generate-fonts.py'), run_name='__main__')

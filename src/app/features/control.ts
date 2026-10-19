@@ -6,9 +6,9 @@ import { ROLES, Role } from '../core/models';
 import { Icon } from '../shared/icon';
 import { Badge } from '../shared/badge';
 import { ROUTES_GUIDE } from '../core/guide';
-import { MainlineGuide } from './mainline-guide';
+import { RoundProgress } from './round-progress';
 @Component({
-  imports: [FormsModule, Icon, Badge, MainlineGuide],
+  imports: [FormsModule, Icon, Badge, RoundProgress],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './control.html',
   styles: `
@@ -232,8 +232,13 @@ export class Control {
     });
   }
   async reset(): Promise<void> {
-    if (!window.confirm('将清除本轮所有修改、通知和本地上传文件，恢复初始样例。确定重置吗？'))
+    if (!window.confirm('将切换到新的独立演示轮。旧工作区备份会保留；归属不明的本地附件也会保留。确定继续吗？'))
       return;
     await this.store.reset();
+  }
+  resumeWorkspace(workspaceId: string, roundId: string): void {
+    if (!window.confirm(`将续接旧工作区 ${roundId}。当前活动工作区会被保留，可随时切回。继续吗？`))
+      return;
+    this.store.resumeWorkspace(workspaceId);
   }
 }

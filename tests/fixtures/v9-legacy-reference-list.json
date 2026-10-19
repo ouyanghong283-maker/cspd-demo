@@ -1,0 +1,64 @@
+{
+  "listOf": "04-03 / #137（K27 整理；关系判定与映射归 C05/C0）",
+  "preparedBy": "K27（KIMI）",
+  "source": "createSeed() 当前快照，原值照录；「缺值」仅指字段为空字符串或不存在该引用，不含任何映射判断",
+  "scope": "旧方案相关旧 ID 一览",
+  "rows": [
+    {
+      "legacyType": "solutionSeries",
+      "legacyId": "V4-SEED-SOL-DEMO-O009",
+      "originalReferences": {
+        "opportunityId": "DEMO-O009",
+        "latestVersionId": "V4-SEED-SV-DEMO-O009",
+        "finalVersionId": ""
+      },
+      "missingValues": ["finalVersionId 为空字符串"],
+      "facts": ["当前快照 opportunities 列表中无 DEMO-O009（原值照录，不判断归属）"]
+    },
+    {
+      "legacyType": "solutionVersion",
+      "legacyId": "V4-SEED-SV-DEMO-O009",
+      "originalReferences": {
+        "seriesId": "V4-SEED-SOL-DEMO-O009",
+        "documentId": "V4-SEED-DOC-DEMO-O009",
+        "operationId": "seed-DEMO-O009",
+        "number": 1
+      },
+      "missingValues": [],
+      "facts": []
+    },
+    {
+      "legacyType": "attachment",
+      "legacyId": "V4-SEED-DOC-DEMO-O009",
+      "originalReferences": {
+        "entityId": "DEMO-O009",
+        "kind": "核心技术方案",
+        "name": "演示_已发报价方案V1.pdf"
+      },
+      "missingValues": ["size 为 0", "url 为空字符串"],
+      "facts": ["mode='simulated'，sample=true"]
+    },
+    {
+      "legacyType": "quoteVersion",
+      "legacyId": "DEMO-QV-004-1",
+      "originalReferences": {
+        "quoteSeriesId": "DEMO-Q-004",
+        "opportunityId": "DEMO-O009",
+        "solutionVersionId": "V4-SEED-SV-DEMO-O009",
+        "status": "已记录发出"
+      },
+      "missingValues": [],
+      "facts": []
+    },
+    {
+      "legacyType": "quoteVersion",
+      "legacyId": "DEMO-QV-004-2",
+      "originalReferences": {
+        "quoteSeriesId": "DEMO-Q-004",
+        "status": "草稿"
+      },
+      "missingValues": ["无 solutionVersionId 字段"],
+      "facts": []
+    }
+  ]
+}

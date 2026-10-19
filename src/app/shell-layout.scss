@@ -15,6 +15,7 @@
   z-index: 40;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 .brand {
   display: flex;
@@ -22,6 +23,7 @@
   align-items: center;
   padding: 29px 25px 27px;
   color: white;
+  flex: 0 0 auto;
 }
 .brand strong {
   font-size: 23px;
@@ -70,6 +72,7 @@
   display: flex;
   justify-content: space-between;
   color: #8d9bb3;
+  flex: 0 0 auto;
 }
 .edition {
   font-size: 8px;
@@ -80,6 +83,13 @@
 }
 nav {
   padding: 0 13px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #33445f transparent;
+  padding-bottom: 12px;
 }
 nav a {
   display: flex;
@@ -91,6 +101,7 @@ nav a {
   border-radius: 6px;
   font-size: 12px;
   transition: background 0.15s;
+  position: relative;
 }
 nav a:hover {
   background: #ffffff07;
@@ -99,6 +110,8 @@ nav a:hover {
 nav a.active {
   background: #315dde;
   color: white;
+  box-shadow: inset 3px 0 #b6c9ff;
+  font-weight: 600;
 }
 nav a app-icon {
   width: 17px;
@@ -116,14 +129,55 @@ nav a small {
   padding: 0 4px;
   color: #bbc9e7;
 }
+nav a small.nav-badge {
+  min-width: 20px;
+  border-radius: 999px;
+  background: #7895ce33;
+  color: #dbe5fb;
+  font-variant-numeric: tabular-nums;
+}
 nav a.active small {
   color: white;
+}
+nav a.nav-child {
+  height: 37px;
+  margin: 2px 0 2px 15px;
+  padding-left: 11px;
+  border-left: 1px solid #33445f;
+  border-radius: 0 5px 5px 0;
+  color: #9aabc5;
+  font-size: 11px;
+}
+nav a.nav-child app-icon {
+  width: 15px;
+  height: 15px;
+}
+nav a.nav-child.active {
+  background: #ffffff0c;
+  border-left-color: #7898f0;
+  color: #e8edfb;
+}
+nav a.nav-secondary {
+  color: #9aabc5;
+  font-size: 11px;
 }
 .nav-group {
   font-size: 9px;
   letter-spacing: 0.5px;
-  padding: 22px 13px 8px;
+  width: 100%;
+  padding: 17px 13px 8px;
   color: #60728f;
+  border: 0;
+  background: transparent;
+  display: flex;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+}
+.nav-group:focus-visible,
+nav a:focus-visible {
+  outline: 2px solid #b6c9ff;
+  outline-offset: 2px;
 }
 .sidebar-help {
   margin: auto 22px 20px;
@@ -131,6 +185,7 @@ nav a.active small {
   background: #ffffff04;
   border: 1px solid #ffffff08;
   border-radius: 8px;
+  flex: 0 0 auto;
 }
 .help-icon {
   display: block;
@@ -165,6 +220,7 @@ nav a.active small {
   gap: 10px;
   padding: 18px 22px;
   border-top: 1px solid #ffffff08;
+  flex: 0 0 auto;
 }
 .sidebar-user > div {
   flex: 1;
@@ -238,6 +294,27 @@ nav a.active small {
   height: 5px;
   border-radius: 50%;
   background: #9aaa8e;
+}
+.editing-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #4e8069;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.editing-status::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5eaa80;
+  content: '';
+}
+.editing-status.read-only {
+  color: #9a6b34;
+}
+.editing-status.read-only::before {
+  background: #d29a44;
 }
 .base-date {
   display: flex;
@@ -381,16 +458,20 @@ nav a.active small {
     transform: translateX(-100%);
     width: 232px;
     transition: transform 0.2s;
+    visibility: hidden;
   }
   .sidebar.mobile-open {
     transform: translateX(0);
+    visibility: visible;
   }
   .main-layout {
     margin-left: 0;
   }
   .topbar {
-    padding: 0 16px;
-    height: 60px;
+    padding: 8px 16px;
+    min-height: 60px;
+    height: auto;
+    flex-wrap: wrap;
   }
   .top-left {
     gap: 9px;
@@ -400,13 +481,16 @@ nav a.active small {
     display: none;
   }
   .top-right {
-    gap: 10px;
+    gap: 8px;
+    max-width: 100%;
+    flex-wrap: wrap;
   }
   .demo-label {
     display: none;
   }
   .role-select {
-    max-width: 145px;
+    width: 110px;
+    max-width: 110px;
   }
   .page-container {
     padding: 22px 16px;
@@ -420,9 +504,21 @@ nav a.active small {
     border: 0;
   }
   .sidebar-help {
-    margin-top: 25px;
+    margin-top: 10px;
   }
   .sidebar-user {
     margin-top: auto;
   }
+}
+
+@media (max-height: 620px) {
+  .sidebar-help {
+    display: none;
+  }
+}
+
+/* 中等宽度保留修改权提示，顶栏按可用空间换行。 */
+@media (min-width: 761px) and (max-width: 1100px) {
+ .topbar {height:auto;min-height:71px;flex-wrap:wrap;padding:12px 24px;}
+ .top-right {max-width:100%;flex-wrap:wrap;gap:10px;}
 }

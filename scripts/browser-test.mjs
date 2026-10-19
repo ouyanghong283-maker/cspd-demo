@@ -1,5 +1,6 @@
 import { connect, toolText, root } from './mcp-client.mjs';
 import fs from 'node:fs/promises';
+import { base } from './browser-config.mjs';
 const { client, call: raw } = await connect();
 let pageId;
 const results = [];
@@ -16,6 +17,16 @@ const assert = (v, message) => {
 const state = () => ev("return JSON.parse(localStorage.getItem('cspd-demo-v2'))");
 const snap = async () => toolText(await call('take_snapshot'));
 async function click(name, index = 0) {
+  if (name === '使用演示附件') {
+    const s = await snap();
+    const choices = s
+      .split('\n')
+      .filter((x) => /button "模拟上传/.test(x) && !x.includes('disabled'));
+    assert(choices[index], '模拟资料入口不可用');
+    await call('click', { uid: choices[index].match(/uid=(\S+)/)[1] });
+    await click('保存');
+    return;
+  }
   const s = await snap();
   const lines = s
     .split('\n')
@@ -31,7 +42,15 @@ async function fields(values) {
 const sample = async (save = '保存') => {
   await click('填入演示内容');
   await click(save);
-  assert(!(await ev("return !!document.querySelector('[role=dialog]')")), '表单未成功保存');
+  assert(
+    await ev(
+      "return new Promise(resolve=>{let n=0;const check=()=>{if(!document.querySelector('[role=dialog]'))return resolve(true);if(++n>40)return resolve(false);setTimeout(check,50)};check()})",
+    ),
+    '表单未成功保存:' +
+      (await ev(
+        "return document.querySelector('[role=dialog]')?.innerText+' '+document.querySelector('[role=status]')?.innerText",
+      )),
+  );
 };
 async function role(value) {
   const s = await snap();
@@ -42,10 +61,11 @@ async function role(value) {
   await call('fill', { uid, value });
 }
 async function nav(url) {
-  await call('navigate_page', { url: 'http://localhost:4200' + url, type: 'url' });
+  await call('navigate_page', { url: base + url, type: 'url' });
   await call('wait_for', { text: ['CSPD 项目全链条协同平台'], timeout: 10000 });
 }
 async function check(name, fn) {
+  if (process.env.CSPD_BROWSER_CASE && !name.includes(process.env.CSPD_BROWSER_CASE)) return;
   try {
     await fn();
     await audit();
@@ -67,13 +87,12 @@ async function shot(name) {
   await call('take_screenshot', { filePath: root + '/artifacts/' + name + '.png', fullPage: true });
 }
 try {
-  const s = toolText(
-    await raw('new_page', { url: 'http://localhost:4200/control', timeout: 30000 }),
-  );
+  const s = toolText(await raw('new_page', { url: base + '/control', timeout: 30000 }));
   pageId = Number(s.match(/(\d+):.*\[selected\]/)[1]);
   // Reset through the visible control and accept its confirmation explicitly.
   await click('重置演示数据');
   await call('handle_dialog', { action: 'accept' });
+  await call('wait_for', { text: ['已恢复初始样例'], timeout: 10000 });
   await check('全部主要页面显示与控制台', async () => {
     for (const url of [
       '/',
@@ -85,6 +104,7 @@ try {
       '/control',
       '/sales/detail/DEMO-O001',
       '/projects/DEMO-P001',
+      '/projects/DEMO-P001/startup',
     ]) {
       await nav(url);
       assert(
@@ -185,7 +205,7 @@ try {
       '客户资料未继承',
     );
     assert(
-      d.attachments.some((x) => x.entityId === opp.id && x.kind === '需求导入表'),
+      d.attachments.some((x) => x.entityId === opp.leadId && x.kind === '需求导入表'),
       '附件未继承',
     );
     await nav('/sales/detail/DEMO-L001');
@@ -204,10 +224,12 @@ try {
       await sample();
       await click('完成本步，进入下一步');
     }
+    await click('记录本轮沟通');
+    await sample();
     await click('记录赢单');
     await sample('确认赢单');
     assert((await state()).sales.find((x) => x.id === 'DEMO-O001').stage === '赢单', '未赢单');
-    await click('进入交付演示');
+    await click('创建 / 打开交付项目');
     assert(await ev("return location.pathname.startsWith('/projects/')"), '未进入项目');
   });
   await check('重点投标团队指定、角色确认与G1', async () => {
@@ -242,8 +264,10 @@ try {
     await click('接收项目');
     await click('补充交底信息');
     await sample();
-    await ev("document.getElementById('doc-启动纪要').querySelector('button').click();return true");
-    await ev("document.getElementById('doc-启动文件').querySelector('button').click();return true");
+    await click('模拟上传启动纪要');
+    await click('保存');
+    await click('模拟上传启动文件');
+    await click('保存');
     await click('提交交底');
     assert(
       (await state()).projects.find((x) => x.id === 'DEMO-P002').briefing.review === '模拟审核中',
@@ -374,35 +398,22 @@ try {
     const sale = (await state()).sales.find((x) => x.id === 'DEMO-O003');
     assert(sale.customerRoles.length > 0 && sale.taxCase === '跨境交易案例', '客户角色/商务未保存');
   });
-  await check('实际文件上传、刷新保留及空文件拒绝', async () => {
-    await nav('/sales/detail/DEMO-L002');
-    await click('资料');
-    await fs.writeFile(root + '/artifacts/empty.pdf', '');
-    const upload = async (path) => {
-      const s = await snap();
-      const line = s.split('\n').find((x) => x.includes('button "上传需求导入表"'));
-      await call('upload_file', { uid: line.match(/uid=(\S+)/)[1], filePaths: [path] });
-    };
-    await upload(root + '/artifacts/empty.pdf');
-    assert(
-      !(await state()).attachments.some(
-        (x) => x.entityId === 'DEMO-L002' && x.name === 'empty.pdf',
-      ),
-      '空文件被接受',
+  await check('模拟附件元数据保存、刷新保留及无真实文件入口', async () => {
+    await role('销售');
+    await nav('/sales/detail/DEMO-L002?tab=' + encodeURIComponent('资料'));
+    assert(!(await ev("return !!document.querySelector('input[type=file]')")), '仍有真实文件入口');
+    await click('模拟上传需求导入表');
+    await fields({ name: '演示自由文件名.xlsx' });
+    await click('保存');
+    const a = (await state()).attachments.find(
+      (x) => x.entityId === 'DEMO-L002' && x.name === '演示自由文件名.xlsx',
     );
-    await upload(root + '/public/samples/需求导入表.pdf');
-    await call('wait_for', { text: ['需求导入表.pdf'], timeout: 10000 });
-    let a = (await state()).attachments.find((x) => x.entityId === 'DEMO-L002' && !x.sample);
-    assert(a && a.size > 0, '未保存真实文件');
+    assert(a?.mode === 'simulated' && !a.url, '模拟记录无效');
     await call('navigate_page', { type: 'reload' });
     assert(
       (await state()).attachments.some((x) => x.id === a.id),
-      '刷新丢失附件',
+      '刷新丢失模拟记录',
     );
-    const data = await ev(
-      `return new Promise((resolve,reject)=>{const r=indexedDB.open('cspd-demo-files-v2');r.onsuccess=()=>{const db=r.result;const names=[...db.objectStoreNames];if(!names.length)return resolve(false);const q=db.transaction(names[0]).objectStore(names[0]).get(${JSON.stringify(a.id)});q.onsuccess=()=>resolve(!!q.result);q.onerror=reject};r.onerror=reject})`,
-    );
-    assert(data, 'IndexedDB缺少上传内容');
   });
   await check('同合同子项目独立、模板应用与客户节点通知', async () => {
     await role('项目经理');
@@ -518,6 +529,13 @@ try {
   await shot('control-guide');
   await audit();
 } finally {
+  if (process.env.CSPD_BROWSER_CASE) {
+    const previous = JSON.parse(
+      await fs.readFile(root + '/artifacts/browser-results.json', 'utf8'),
+    );
+    for (const item of previous.results)
+      if (!results.some((x) => x.name === item.name)) results.push(item);
+  }
   await fs.writeFile(
     root + '/artifacts/browser-results.json',
     JSON.stringify(

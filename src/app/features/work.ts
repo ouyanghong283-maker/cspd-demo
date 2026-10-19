@@ -1,200 +1,29 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { DemoStore } from '../core/store';
 import { BusinessForms } from '../core/forms';
 import { Icon } from '../shared/icon';
 import { Badge } from '../shared/badge';
-import { MainlineGuide } from './mainline-guide';
+import { RoundProgress } from './round-progress';
+import {
+  collectDemoFinanceSummaries,
+  collectDemoProjectWorkItems,
+  collectDemoWorkItems,
+} from '../core/work-item-sources';
+import {
+  collectPersonPlanWarningViews,
+  planWarningPersonKey,
+  planWarningStats,
+  PlanWarningView,
+} from '../core/plan-warnings';
+import { riskClass } from '../core/rules';
+import { parseRouteHref } from '../core/route-href';
 @Component({
-  imports: [RouterLink, Icon, Badge, MainlineGuide],
+  imports: [RouterLink, DecimalPipe, Icon, Badge, RoundProgress],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './work.html',
-  styles: `
-    .greeting-date {
-      font-size: 11px;
-      color: #9aa5b6;
-      margin-bottom: 9px;
-    }
-    .welcome-strip {
-      background: white;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 24px 27px;
-      margin-bottom: 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 22px;
-    }
-    .start-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}
-    .welcome-strip h2 {
-      font-size: 19px;
-      margin: 0 0 8px;
-    }
-    .welcome-strip p {
-      font-size: 12px;
-      margin: 0;
-      line-height: 1.9;
-    }
-    .welcome-art {
-      display: flex;
-      gap: 6px;
-      align-items: end;
-      height: 54px;
-      width: 100px;
-      padding-right: 18px;
-    }
-    .welcome-art span {
-      width: 16px;
-      border-radius: 3px 3px 0 0;
-      background: #e1e9fc;
-    }
-    .welcome-art span:nth-child(2) {
-      background: #b7cbf7;
-    }
-    .welcome-art span:nth-child(3) {
-      background: #799ce9;
-    }
-    .welcome-art span:nth-child(4) {
-      background: #315dde;
-    }
-    .workspace-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr);
-      gap: 22px;
-    }
-    .task-row {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      padding: 17px 24px;
-      border-bottom: 1px solid #eef1f5;
-    }
-    .task-row:last-child {
-      border: 0;
-    }
-    .task-symbol {
-      padding: 9px;
-      border-radius: 7px;
-      background: #f0f4fd;
-      color: #6c86bb;
-    }
-    .task-symbol.warning {
-      background: #fff6e9;
-      color: #c39650;
-    }
-    .task-row h3 {
-      font-size: 12px;
-      margin: 0 0 5px;
-    }
-    .task-row p {
-      font-size: 11px;
-      margin: 0;
-    }
-    .task-row .time {
-      font-size: 10px;
-      color: #9ea8ba;
-      margin-top: 6px;
-    }
-    .quick-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-    }
-    .quick-action {
-      padding: 20px 22px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border-bottom: 1px solid var(--line);
-    }
-    .quick-action:nth-child(odd) {
-      border-right: 1px solid var(--line);
-    }
-    .quick-action:nth-last-child(-n + 2) {
-      border-bottom: 0;
-    }
-    .quick-action > span {
-      background: #f3f6fc;
-      padding: 9px;
-      border-radius: 7px;
-      color: #7c93bc;
-    }
-    .quick-action strong {
-      display: block;
-      font-size: 12px;
-      font-weight: 550;
-    }
-    .quick-action small {
-      font-size: 10px;
-      color: #9aa4b4;
-    }
-    .project-mini {
-      padding: 17px 23px;
-      display: block;
-      border-bottom: 1px solid var(--line);
-    }
-    .project-mini:last-child {
-      border: 0;
-    }
-    .project-mini > div {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: center;
-    }
-    .project-mini h3 {
-      font-size: 12px;
-      margin: 0;
-    }
-    .project-mini p {
-      font-size: 10px;
-      margin: 8px 0 10px;
-    }
-    .project-mini .progress-track {
-      height: 4px;
-    }
-    .guide-list {
-      padding: 6px 22px 18px;
-    }
-    .guide-list a {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 11px 0;
-      color: #6b7e9e;
-      font-size: 11px;
-    }
-    .guide-list a app-icon {
-      width: 14px;
-      height: 14px;
-    }
-    .guide-list a span {
-      flex: 1;
-    }
-    @media (max-width: 1050px) {
-      .workspace-grid {
-        grid-template-columns: 1fr;
-      }
-      .welcome-art {
-        display: none;
-      }
-      .start-actions{justify-content:flex-start}
-    }
-    @media (max-width: 760px) {
-      .welcome-strip {
-        padding: 20px;
-        align-items: flex-start;
-        flex-direction: column;
-      }
-      .task-row {
-        padding: 15px;
-      }
-      .quick-action {
-        padding: 16px 14px;
-      }
-    }
-  `,
+  styleUrl: './work.scss',
 })
 export class Work {
   store = inject(DemoStore);
@@ -204,46 +33,122 @@ export class Work {
     this.store.opportunities().filter((o) => !['赢单', '丢单'].includes(o.stage)),
   );
   projectList = computed(() => this.store.state().projects.slice(0, 3));
-  tasks = computed(() => {
-    const role = this.store.role();
-    const notices = this.store
-      .pendingNotices()
-      .map((n) => ({
-        id: n.id,
-        entityId: n.entityId,
-        title: n.title,
-        text: n.text,
-        state: n.read ? '待处理' : '未读提醒',
-        icon: 'bell',
-      }));
-    if (role === 'sales' || role === 'manager')
-      for (const x of this.store
-        .cooling()
-        .filter((x) => role === 'manager' || x.owner === this.store.person())
-        .slice(0, 3))
-        notices.push({
-          id: `cooling-${x.id}`,
-          entityId: x.id,
-          title: `${x.projectName}：${this.store.days(x) >= 60 && role === 'manager' ? '60天主管升级' : '需要客户跟进'}`,
-          text: `${this.store.days(x)}天未更新 · ${x.owner} · ${this.store.customer(x.customerId)?.name}`,
-          state: '冷却提醒',
-          icon: 'clock',
-        });
-    if (role === 'pm')
-      for (const p of this.store
-        .state()
-        .projects.filter((p) => !p.accepted || p.briefing.review === '待提交')
-        .slice(0, 3))
-        notices.push({
-          id: p.id,
-          entityId: p.id,
-          title: p.accepted ? '补齐启动交底资料' : '请接收交付项目',
-          text: `${p.name} · ${p.id}`,
-          state: '待处理',
-          icon: 'project',
-        });
-    return notices;
+  taskView = computed(() =>
+    collectDemoWorkItems(this.store.state(), this.store.person(), this.store.observationDate()),
+  );
+  openTasks = computed(() => this.taskView().items.filter((item) => item.status === 'open'));
+  search = linkedSignal({ source: () => this.store.person(), computation: () => '' });
+  department = linkedSignal({ source: () => this.store.person(), computation: () => '' });
+  projectFilter = linkedSignal({ source: () => this.store.person(), computation: () => '' });
+  ownerFilter = linkedSignal({ source: () => this.store.person(), computation: () => '' });
+  statusFilter = linkedSignal({ source: () => this.store.person(), computation: () => 'open' });
+  levelFilter = linkedSignal({ source: () => this.store.person(), computation: () => '' });
+  departments = computed(() => [...new Set(this.openTasks().map((task) => task.department))]);
+  taskProjects = computed(() => {
+    const projects = new Map<string, string>();
+    for (const task of this.taskView().items)
+      if (task.projectId)
+        projects.set(
+          task.projectId,
+          this.store.project(task.projectId)?.name || task.projectId,
+        );
+    return [...projects].map(([id, name]) => ({ id, name }));
   });
+  /**
+   * 负责人下拉的候选项：普通待办责任人 + 预警接收人。
+   * 预警的接收人含项目PM，PM 可能只作为接收人出现，必须可选，否则筛选不到自己的预警。
+   */
+  taskOwners = computed(() => {
+    const owners = new Set<string>();
+    for (const task of this.taskView().items)
+      for (const owner of task.owner.split('、')) if (owner.trim()) owners.add(owner.trim());
+    for (const warning of this.warningViews())
+      for (const recipient of warning.recipients)
+        if (recipient.person.trim()) owners.add(recipient.person.trim());
+    return [...owners];
+  });
+  filteredTasks = computed(() => {
+    const query = this.search().trim().toLocaleLowerCase();
+    return this.taskView()
+      .items.filter(
+        (task) =>
+          (!this.statusFilter() || task.status === this.statusFilter()) &&
+          (!this.projectFilter() || task.projectId === this.projectFilter()) &&
+          (!this.ownerFilter() ||
+            task.owner.split('、').some((owner) => owner.trim() === this.ownerFilter())) &&
+          (!this.department() || task.department === this.department()) &&
+          (!query ||
+            [task.title, task.owner, task.department, task.id]
+              .join(' ')
+              .toLocaleLowerCase()
+              .includes(query)),
+      );
+  });
+  hasFilters = computed(
+    () =>
+      !!this.search() ||
+      !!this.department() ||
+      !!this.projectFilter() ||
+      !!this.ownerFilter() ||
+      this.statusFilter() !== 'open' ||
+      !!this.levelFilter(),
+  );
+  /** 与普通待办同源：预警事项本身就是上面同一批事项，不重复计数。 */
+  viewerKey = computed(() => planWarningPersonKey(this.store.person()));
+  warningViews = computed(() =>
+    collectPersonPlanWarningViews(
+      this.store.state(),
+      this.viewerKey(),
+      this.store.observationDate(),
+    ),
+  );
+  filteredWarnings = computed(() =>
+    this.warningViews().filter(
+      (warning) =>
+        (!this.levelFilter() || warning.level === this.levelFilter()) &&
+        (!this.projectFilter() || warning.projectId === this.projectFilter()) &&
+        (!this.ownerFilter() ||
+          warning.recipients.some((recipient) => recipient.person === this.ownerFilter())),
+    ),
+  );
+  warningStat = computed(() => planWarningStats(this.warningViews()));
+  warningRiskClass = (warning: PlanWarningView): string => riskClass(warning.level);
+  /** 工作项 href 是「路径?查询」文本，交给 routerLink 前先拆成 path 与 queryParams。 */
+  routeLink(href?: string) {
+    return parseRouteHref(href);
+  }
+  markWarningRead(warning: PlanWarningView): void {
+    if (warning.read) return;
+    this.store.markPlanWarningRead(warning.id);
+  }
+  resetFilters(): void {
+    this.search.set('');
+    this.department.set('');
+    this.projectFilter.set('');
+    this.ownerFilter.set('');
+    this.statusFilter.set('open');
+    this.levelFilter.set('');
+  }
+  projectBoardView = computed(() =>
+    collectDemoProjectWorkItems(this.store.state(), this.store.observationDate()),
+  );
+  projectBoardItems = computed(() =>
+    this.projectBoardView()
+      .items.filter((item) => item.status === 'open')
+      .slice(0, 6),
+  );
+  financeSummaries = computed(() => collectDemoFinanceSummaries(this.store.state()));
+  financeSummaryLabel = computed(() =>
+    this.financeSummaries().some((summary) => summary.status === 'available')
+      ? '本地演示快照'
+      : '待提供',
+  );
+  nextProjectStep(projectId: string): string {
+    return (
+      this.projectBoardView().items.find((item) => item.projectId === projectId)?.title ||
+      '暂无未完成计划节点'
+    );
+  }
   progress(id: string): number {
     const p = this.store.project(id)!;
     return Math.round(
@@ -252,23 +157,41 @@ export class Work {
   }
   startMainline(): void {
     this.store.setRole('sales');
-    this.router.navigate(['/sales/detail', 'DEMO-L001'], { queryParams: { tab: '概览', guide: 'mainline' } });
+    this.router.navigate(['/sales/detail', 'DEMO-L001'], {
+      queryParams: { tab: '概览', guide: 'mainline' },
+    });
   }
-  open(id: string): void {
+  open(id: string, key = ''): void {
     const sale = this.store.sale(id);
-    this.router.navigate([this.store.project(id) ? '/projects' : '/sales/detail', id], sale?.quoteFlowMode === 'v2' ? { queryParams: { tab: '报价' } } : undefined);
+    this.router.navigate(
+      [this.store.project(id) ? '/projects' : '/sales/detail', id],
+      key.startsWith('v4-service-')
+        ? { queryParams: { tab: '服务条件' } }
+        : key.startsWith('valid-submission-') || key.startsWith('opportunity-gate-')
+          ? { queryParams: { tab: '团队' } }
+          : key.startsWith('v4-receivable-')
+            ? { queryParams: { tab: '财务信息' } }
+            : key.startsWith('v4-milestone-')
+              ? { queryParams: { tab: '计划执行' } }
+              : sale?.quoteFlowMode === 'v2'
+                ? { queryParams: { tab: '报价' } }
+                : undefined,
+    );
   }
   practice(): void {
     const role = this.store.role();
     if (['sales', 'assistant'].includes(role)) this.router.navigate(['/sales/detail', 'DEMO-L001']);
     else if (role === 'manager') this.router.navigate(['/sales']);
-    else if (role === 'solution') this.router.navigate(['/sales/detail', 'DEMO-O002'], { queryParams: { tab: '团队' } });
-    else if (role === 'pmo') this.router.navigate(['/sales/detail', 'DEMO-O002'], { queryParams: { tab: '团队' } });
+    else if (role === 'solution')
+      this.router.navigate(['/sales/detail', 'DEMO-O002'], { queryParams: { tab: '团队' } });
+    else if (role === 'pmo')
+      this.router.navigate(['/sales/detail', 'DEMO-O002'], { queryParams: { tab: '团队' } });
     else if (role === 'receiver') {
-      const project = this.store.state().projects.find((p) => p.handover.status === '待接收') || this.store.state().projects[0];
+      const project =
+        this.store.state().projects.find((p) => p.handover.status === '待接收') ||
+        this.store.state().projects[0];
       this.router.navigate(['/projects', project.id], { queryParams: { tab: '移交' } });
-    }
-    else
+    } else
       this.router.navigate(['/projects', role === 'quality' ? 'DEMO-P003' : 'DEMO-P001'], {
         queryParams: {
           tab: role === 'pm' ? '启动交底' : '计划执行',

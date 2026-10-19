@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { DemoStore } from '../core/store';
+import { ROLES } from '../core/models';
 import { Icon } from '../shared/icon';
 
 @Component({
@@ -13,31 +14,165 @@ import { Icon } from '../shared/icon';
         <div class="rail">
           @for (step of f.steps; track step.id; let i = $index) {
             <div class="rail-step" [class.done]="step.done" [class.current]="i === f.index">
-              <span>{{ step.done ? '✓' : i + 1 }}</span><small>{{ step.title }}</small>
+              <span>{{ step.done ? '✓' : i + 1 }}</span
+              ><small>{{ step.title }}</small>
             </div>
           }
         </div>
         <div class="current-step">
           <div class="copy">
-            <p class="step-count">{{ f.index === f.steps.length ? '主线已完成' : '第 ' + (f.index + 1) + ' 步 / ' + f.steps.length + ' 步' }}</p>
+            <p class="step-count">
+              {{
+                f.index === f.steps.length
+                  ? '主线已完成'
+                  : '第 ' + (f.index + 1) + ' 步 / ' + f.steps.length + ' 步'
+              }}
+            </p>
             <h2>{{ f.action }}</h2>
-            @if (f.missing.length) { <p class="missing"><strong>还需处理：</strong>{{ f.missing.join('、') }}</p> }
-            <p class="owner"><app-icon name="users"/> 下一位接手：{{ f.owner }}</p>
+            @if (f.missing.length) {
+              <div class="missing-list" aria-label="缺项提醒">
+                <strong>还需处理：</strong>
+                @for (item of f.missing; track item) {
+                  <span class="missing-item">缺少：{{ item }}</span>
+                }
+              </div>
+            }
+            <p class="owner"><app-icon name="users" /> 下一位接手：{{ f.owner }}</p>
           </div>
-          @if (f.url) { <button class="btn primary" (click)="open(f.url, f.role, f.tab)">{{ f.button }}<app-icon name="arrow"/></button> }
+          @if (f.url) {
+            <button class="btn primary" (click)="continue()">
+              {{ f.button }}<app-icon name="arrow" />
+            </button>
+          }
         </div>
       </section>
     }
   `,
   styles: `
-    .mainline{border:1px solid #dbe4f3;border-left:4px solid #315dde;border-radius:8px;background:#fff;margin:0 0 20px;padding:18px 22px}
-    .rail{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:16px}
-    .rail-step{display:flex;align-items:center;gap:7px;color:#8592a7;font-size:11px;border-bottom:2px solid #e7ebf2;padding-bottom:8px}
-    .rail-step span{display:grid;place-items:center;flex:0 0 21px;height:21px;border-radius:50%;background:#edf1f7;font-size:10px}
-    .rail-step.done{color:#34785c;border-color:#72ae91}.rail-step.done span{background:#e2f2e9;color:#34785c}
-    .rail-step.current{color:#234aa8;border-color:#315dde;font-weight:600}.rail-step.current span{background:#315dde;color:white}
-    .current-step{display:flex;align-items:center;justify-content:space-between;gap:18px}.copy h2{font-size:15px;margin:0 0 5px}.copy p{font-size:12px;margin:4px 0;color:#66758d}.copy .step-count{font-size:10px;color:#315dde;font-weight:650}.copy .missing strong{color:#8a5a12}.owner{display:flex;align-items:center;gap:6px}.owner app-icon{width:13px;height:13px}
-    @media(max-width:700px){.mainline{padding:14px}.rail{grid-template-columns:1fr;gap:0}.rail-step{border-bottom:0;padding:3px 0}.rail-step:not(.current):not(.done){display:none}.current-step{align-items:flex-start;flex-direction:column}.current-step button{width:100%;justify-content:center}}
+    .mainline {
+      border: 1px solid #dbe4f3;
+      border-left: 4px solid #315dde;
+      border-radius: 8px;
+      background: #fff;
+      margin: 0 0 20px;
+      padding: 18px 22px;
+    }
+    .rail {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .rail-step {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #8592a7;
+      font-size: 11px;
+      border-bottom: 2px solid #e7ebf2;
+      padding-bottom: 8px;
+    }
+    .rail-step span {
+      display: grid;
+      place-items: center;
+      flex: 0 0 21px;
+      height: 21px;
+      border-radius: 50%;
+      background: #edf1f7;
+      font-size: 10px;
+    }
+    .rail-step.done {
+      color: #34785c;
+      border-color: #72ae91;
+    }
+    .rail-step.done span {
+      background: #e2f2e9;
+      color: #34785c;
+    }
+    .rail-step.current {
+      color: #234aa8;
+      border-color: #315dde;
+      font-weight: 600;
+    }
+    .rail-step.current span {
+      background: #315dde;
+      color: white;
+    }
+    .current-step {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .copy h2 {
+      font-size: 15px;
+      margin: 0 0 5px;
+    }
+    .copy p {
+      font-size: 12px;
+      margin: 4px 0;
+      color: #66758d;
+    }
+    .copy .step-count {
+      font-size: 10px;
+      color: #315dde;
+      font-weight: 650;
+    }
+    .missing-list {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 7px 0;
+      color: #b42318;
+      font-size: 12px;
+    }
+    .missing-list strong {
+      color: #b42318;
+    }
+    .missing-item {
+      display: inline-flex;
+      border: 1px solid #d92d20;
+      border-radius: 5px;
+      background: #fff1f0;
+      color: #b42318;
+      padding: 4px 7px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .owner {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .owner app-icon {
+      width: 13px;
+      height: 13px;
+    }
+    @media (max-width: 700px) {
+      .mainline {
+        padding: 14px;
+      }
+      .rail {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+      .rail-step {
+        border-bottom: 0;
+        padding: 3px 0;
+      }
+      .rail-step:not(.current):not(.done) {
+        display: none;
+      }
+      .current-step {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .current-step button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
   `,
 })
 export class MainlineGuide {
@@ -46,7 +181,9 @@ export class MainlineGuide {
   readonly flow = computed(() => {
     const lead = this.store.sale('DEMO-L001');
     const opportunity = lead?.convertedTo ? this.store.sale(lead.convertedTo) : undefined;
-    const project = opportunity ? this.store.state().projects.find((item) => item.opportunityId === opportunity.id) : undefined;
+    const project = opportunity
+      ? this.store.state().projects.find((item) => item.opportunityId === opportunity.id)
+      : undefined;
     const leadReady = !!opportunity;
     const opportunityReady = !!opportunity && opportunity.stage === '赢单';
     const projectReady = !!project;
@@ -60,24 +197,165 @@ export class MainlineGuide {
       { id: 'briefing', title: '交底审核', done: briefingDone },
     ];
     const index = steps.findIndex((step) => !step.done);
-    const leadMissing = !lead ? ['找不到起始线索DEMO-L001'] : [
-      ...(!this.store.contact(lead)?.name ? ['主要联系人'] : []),
-      ...(!this.store.has(lead.id, '需求导入表') ? ['需求导入表'] : []),
-      ...(!lead.owner ? ['销售负责人'] : []),
-      ...(!['待跟进'].includes(lead.status) && !lead.convertedTo ? ['恢复线索跟进状态'] : []),
-    ];
-    if (index === 0) return { steps, index, action: '补齐线索资料并转为商机', missing: leadMissing, owner: '销售', role: 'sales' as const, url: `/sales/detail/${lead?.id || 'DEMO-L001'}`, tab: lead && !this.store.has(lead.id, '需求导入表') ? '资料' : '概览', button: leadMissing.length ? '继续补线索' : '打开线索' };
+    const leadMissing = !lead
+      ? ['找不到起始线索DEMO-L001']
+      : [
+          ...(!this.store.contact(lead)?.name ? ['主要联系人'] : []),
+          ...(!this.store.has(lead.id, '需求导入表') ? ['需求导入表'] : []),
+          ...(!lead.owner ? ['销售负责人'] : []),
+          ...(!['待跟进'].includes(lead.status) && !lead.convertedTo ? ['恢复线索跟进状态'] : []),
+        ];
+    if (index === 0)
+      return {
+        steps,
+        index,
+        action: '补齐线索资料并转为商机',
+        missing: leadMissing,
+        owner: '销售',
+        role: 'sales' as const,
+        url: `/sales/detail/${lead?.id || 'DEMO-L001'}`,
+        tab: lead && !this.store.has(lead.id, '需求导入表') ? '资料' : '概览',
+        button: leadMissing.length ? '继续补线索' : '打开线索',
+      };
     if (index === 1 && opportunity) {
-      const tab = opportunity.quoteFlowMode === 'v2' && opportunity.stage === '方案报价' ? '报价' : opportunity.stage === '洽谈' ? '沟通' : '概览';
-      return { steps, index, action: opportunity.stage === '丢单' ? '当前商机已丢单，主线无法继续' : `继续推进商机：${opportunity.stage}`, missing: opportunity.stage === '丢单' ? ['可从控制台选择其他案例'] : [], owner: '销售', role: 'sales' as const, url: opportunity.stage === '丢单' ? '/control' : `/sales/detail/${opportunity.id}`, tab, button: opportunity.stage === '丢单' ? '选择其他案例' : '打开商机' };
+      if (opportunity.stage === '意向沟通') {
+        const missing = this.store.opportunityGateMissing(opportunity.id);
+        const tab = missing.includes('需求导入表')
+          ? '资料'
+          : missing.some((item) => /PMO|团队|部门/.test(item))
+            ? '团队'
+            : '概览';
+        return {
+          steps,
+          index,
+          action: missing.length
+            ? '按清单补齐商机门禁，再进入方案报价'
+            : '商机门禁已齐备，下一步准备方案报价',
+          missing,
+          owner: '销售',
+          role: 'sales' as const,
+          url: `/sales/detail/${opportunity.id}`,
+          tab,
+          button: missing.length ? '处理门禁缺项' : '进入方案报价',
+          advanceId: missing.length ? '' : opportunity.id,
+        };
+      }
+      if (
+        opportunity.quoteFlowMode === 'v2' &&
+        opportunity.stage === '方案报价' &&
+        !this.store.solution(opportunity.id)?.latestVersionId
+      )
+        return {
+          steps,
+          index,
+          action: '下一步：由解决方案补充核心技术方案',
+          missing: ['核心技术方案模拟版本'],
+          owner: '解决方案',
+          role: 'solution' as const,
+          url: `/sales/detail/${opportunity.id}`,
+          tab: '方案',
+          button: '切换解决方案并补方案',
+        };
+      if (opportunity.quoteFlowMode === 'v2' && opportunity.stage === '方案报价') {
+        const next = this.store.solutionNextStep(opportunity.id);
+        return {
+          steps,
+          index,
+          action: next.label,
+          missing: next.missing,
+          owner: ROLES.find((role) => role.id === next.role)?.name || next.role,
+          role: next.role,
+          url: `/sales/detail/${opportunity.id}`,
+          tab: next.tab,
+          button: next.label,
+        };
+      }
+      const tab =
+        opportunity.quoteFlowMode === 'v2' && opportunity.stage === '方案报价'
+          ? '报价'
+          : opportunity.stage === '洽谈'
+            ? '沟通'
+            : '概览';
+      return {
+        steps,
+        index,
+        action:
+          opportunity.stage === '丢单'
+            ? '当前商机已丢单，主线无法继续'
+            : `继续推进商机：${opportunity.stage}`,
+        missing: opportunity.stage === '丢单' ? ['可从控制台选择其他案例'] : [],
+        owner: '销售',
+        role: 'sales' as const,
+        url: opportunity.stage === '丢单' ? '/control' : `/sales/detail/${opportunity.id}`,
+        tab,
+        button: opportunity.stage === '丢单' ? '选择其他案例' : '打开商机',
+      };
     }
-    if (index === 2 && opportunity) return { steps, index, action: '商机赢单后，创建交付项目并带入合同来源', missing: [], owner: '销售 / PM', role: 'sales' as const, url: `/sales/detail/${opportunity.id}`, tab: '概览', button: '打开赢单商机' };
-    if (index === 3 && project) return { steps, index, action: 'PM核对商务来源后接收项目', missing: !project.contractId ? ['合同 / G3模拟来源'] : [], owner: 'PM', role: 'pm' as const, url: `/projects/${project.id}`, tab: '概览', button: '打开项目接收' };
-    if (index === 4 && project) return { steps, index, action: project.briefing.review === '模拟审核中' ? '请PMO查看并记录交底模拟结果' : 'PM补齐启动交底，提交给PMO审核', missing: project.briefing.review === '模拟审核中' ? [] : this.store.briefingMissing(project.id), owner: project.briefing.review === '模拟审核中' ? 'PMO' : 'PM', role: project.briefing.review === '模拟审核中' ? 'pmo' as const : 'pm' as const, url: `/projects/${project.id}`, tab: '启动交底', button: project.briefing.review === '模拟审核中' ? '切换PMO处理' : '打开启动交底' };
-    return { steps, index: steps.length, action: '销售到交付的演示主线已完成，可以查看记录或练习其他角色。', missing: [], owner: '所有参与角色', role: 'sales' as const, url: '', tab: '', button: '' };
+    if (index === 2 && opportunity)
+      return {
+        steps,
+        index,
+        action: '商机赢单后，创建交付项目并带入合同来源',
+        missing: [],
+        owner: '销售 / PM',
+        role: 'sales' as const,
+        url: `/sales/detail/${opportunity.id}`,
+        tab: '概览',
+        button: '打开赢单商机',
+      };
+    if (index === 3 && project)
+      return {
+        steps,
+        index,
+        action: 'PM核对商务来源后接收项目',
+        missing: !project.contractId ? ['合同 / G3模拟来源'] : [],
+        owner: 'PM',
+        role: 'pm' as const,
+        url: `/projects/${project.id}`,
+        tab: '概览',
+        button: '打开项目接收',
+      };
+    if (index === 4 && project)
+      return {
+        steps,
+        index,
+        action:
+          project.briefing.review === '模拟审核中'
+            ? '请PMO查看并记录交底模拟结果'
+            : 'PM补齐启动交底，提交给PMO审核',
+        missing:
+          project.briefing.review === '模拟审核中' ? [] : this.store.briefingMissing(project.id),
+        owner: project.briefing.review === '模拟审核中' ? 'PMO' : 'PM',
+        role: project.briefing.review === '模拟审核中' ? ('pmo' as const) : ('pm' as const),
+        url: `/projects/${project.id}`,
+        tab: '启动交底',
+        button: project.briefing.review === '模拟审核中' ? '切换PMO处理' : '打开启动交底',
+      };
+    return {
+      steps,
+      index: steps.length,
+      action: '销售到交付的演示主线已完成，可以查看记录或练习其他角色。',
+      missing: [],
+      owner: '所有参与角色',
+      role: 'sales' as const,
+      url: '',
+      tab: '',
+      button: '',
+    };
   });
-  open(url: string, role: 'sales'|'pm'|'pmo', tab: string): void {
+  continue(): void {
+    const flow = this.flow();
+    if ('advanceId' in flow && flow.advanceId) {
+      this.store.setRole('sales');
+      if (this.store.role() !== 'sales' || !this.store.advance(flow.advanceId)) return;
+      this.router.navigate([flow.url], { queryParams: { tab: '方案', guide: 'mainline' } });
+      return;
+    }
+    this.open(flow.url, flow.role, flow.tab);
+  }
+  open(url: string, role: 'sales' | 'pm' | 'pmo' | 'solution' | 'receiver', tab: string): void {
     this.store.setRole(role);
+    if (this.store.role() !== role) return;
     this.router.navigate([url], { queryParams: { ...(tab ? { tab } : {}), guide: 'mainline' } });
   }
 }

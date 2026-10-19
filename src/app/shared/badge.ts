@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import type { PlanRiskLevel } from '../core/rules';
 @Component({
   selector: 'app-badge',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -8,11 +9,17 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     [class.amber]="amber()"
     [class.red]="red()"
     [class.blue]="blue()"
+    [class.risk-green]="risk() === 'green'"
+    [class.risk-blue]="risk() === 'blue'"
+    [class.risk-yellow]="risk() === 'yellow'"
+    [class.risk-red]="risk() === 'red'"
+    [class.risk-gray]="risk() === 'gray'"
     >{{ text() }}</span
   >`,
 })
 export class Badge {
   text = input('');
+  risk = input<PlanRiskLevel>();
   green = () =>
     /完成|通过|赢单|接收|合格|已确认/.test(this.text()) &&
     !/未|不合格|附条件|待接收/.test(this.text());

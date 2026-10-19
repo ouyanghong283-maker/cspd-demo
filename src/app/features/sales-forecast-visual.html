@@ -1,0 +1,47 @@
+<div class="forecast-summary">
+  <strong
+    >{{ (total() / 10000).toFixed(1) }}<small>万 {{ currency() }}</small></strong
+  ><span>{{ count() }} 个项目纳入预测</span>
+</div>
+<div class="forecast-visual">
+  <div class="forecast-axis" aria-hidden="true">
+    <span>{{ (scale() / 10000).toFixed(1) }}</span
+    ><span>{{ (scale() / 20000).toFixed(1) }}</span
+    ><span>0</span>
+  </div>
+  <div class="forecast-plot">
+    <div class="chart-gridlines" aria-hidden="true"><i></i><i></i><i></i></div>
+    @for (period of periods(); track period.from; let i = $index) {
+      <button
+        class="forecast-column"
+        (click)="selectPeriod.emit(i)"
+        [class.selected]="selected() === i"
+        [attr.aria-label]="
+          period.from +
+          '至' +
+          period.to +
+          '前，预计成交' +
+          store.money(period.expected, currency()) +
+          '，预计确收' +
+          store.money(period.income, currency()) +
+          '，' +
+          period.count +
+          '个项目，查看明细'
+        "
+      >
+        <span class="bar-value">{{ (period.total / 10000).toFixed(1) }}</span>
+        <span class="forecast-bar-space"
+          ><span class="forecast-bar" [style.height.%]="(period.total / scale()) * 100"
+            ><span class="income-bar" [style.flex-grow]="period.income"></span
+            ><span class="expected-bar" [style.flex-grow]="period.expected"></span></span
+        ></span>
+        <span class="period-label">{{ period.label }}</span>
+        <span class="period-count">{{ period.count }} 个项目</span>
+      </button>
+    }
+  </div>
+</div>
+<div class="forecast-legend">
+  <span><i></i>预计成交</span><span><i class="green"></i>赢单预计确收</span
+  ><span>单位：万 {{ currency() }}</span>
+</div>

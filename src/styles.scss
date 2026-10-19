@@ -370,6 +370,26 @@ td .main-link {
   background: #edf2ff;
   color: #5073c8;
 }
+.badge.risk-green {
+  background: #eaf7f0;
+  color: #258564;
+}
+.badge.risk-blue {
+  background: #edf2ff;
+  color: #5073c8;
+}
+.badge.risk-yellow {
+  background: #fff8ed;
+  color: #a78036;
+}
+.badge.risk-red {
+  background: #fff0f0;
+  color: #c86262;
+}
+.badge.risk-gray {
+  background: #f0f2f6;
+  color: #727f93;
+}
 .filter-bar {
   display: flex;
   align-items: center;

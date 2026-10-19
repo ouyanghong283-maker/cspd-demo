@@ -1,0 +1,1 @@
+var e=new Intl.DateTimeFormat(`sv-SE`,{timeZone:`Asia/Shanghai`,year:`numeric`,month:`2-digit`,day:`2-digit`,hour:`2-digit`,minute:`2-digit`,second:`2-digit`,hour12:!1});function n(i){return i&&Number.isFinite(Date.parse(i))?e.format(new Date(i)):`时间待核`}export{n as t};

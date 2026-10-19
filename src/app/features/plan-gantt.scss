@@ -1,0 +1,347 @@
+:host {
+  display: block;
+  min-width: 0;
+  color: #20344e;
+}
+.gantt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+  padding: 18px 24px 8px;
+}
+.gantt-toolbar p {
+  margin: 0;
+  color: #62748b;
+  font-size: 13px;
+}
+.gantt-toolbar strong {
+  margin-left: 8px;
+  color: #142b4b;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.gantt-toolbar p span {
+  margin-left: 16px;
+  font-size: 12px;
+}
+.gantt-hint {
+  margin: 0;
+  padding: 0 24px 16px;
+  color: #62748b;
+  font-size: 12px;
+}
+.gantt-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  padding: 0;
+  color: #53627a;
+  font-size: 12px;
+}
+.gantt-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.gantt-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+.gantt {
+  overflow-x: auto;
+  padding-bottom: 8px;
+  border-top: 1px solid #e3e9f1;
+}
+.gantt-row {
+  display: grid;
+  grid-template-columns: 242px minmax(420px, 1fr) 282px;
+  align-items: stretch;
+  width: 100%;
+  min-width: 944px;
+  border-bottom: 1px solid #e8edf4;
+  font-size: 13px;
+}
+.gantt-row:last-child {
+  border-bottom: 0;
+}
+.gantt-label {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  min-width: 0;
+  padding: 16px 20px 16px calc(24px + min(var(--depth, 0), 5) * 18px);
+  background: #fff;
+  border-right: 1px solid #e3e9f1;
+}
+.gantt-row:hover .gantt-label,
+.gantt-row:hover .gantt-end {
+  background: #f7f9fd;
+}
+.gantt-heading {
+  background: #edf2f8;
+  color: #53627a;
+}
+.gantt-heading .gantt-label,
+.gantt-heading .gantt-end {
+  padding: 14px 24px;
+  background: #edf2f8;
+  font-size: 12px;
+  font-weight: 650;
+}
+.task-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.4;
+}
+.tree-mark {
+  width: 10px;
+  color: #9baac0;
+  font-size: 14px;
+}
+.wbs-code {
+  color: #526985;
+  font-size: 11px;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+}
+.task-name {
+  display: block;
+  max-width: 100%;
+  margin: 5px 0 3px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #142b4b;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.task-name:hover {
+  color: #214b7c;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.gantt-parent .gantt-label {
+  background: #edf2fb;
+  border-left: 3px solid #214b7c;
+}
+.gantt-parent .task-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1c3558;
+}
+.gantt-parent .wbs-code {
+  color: #214b7c;
+  font-weight: 650;
+}
+.gantt-child .task-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+.gantt-details {
+  color: #62748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.plan-reference {
+  display: block;
+  color: #748197;
+  font-size: 11px;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+.gantt-range {
+  position: relative;
+  min-height: 114px;
+  background: repeating-linear-gradient(
+    to right,
+    #fff 0,
+    #fff calc(25% - 1px),
+    #e9edf4 calc(25% - 1px),
+    #e9edf4 25%
+  );
+}
+.gantt-range > span {
+  position: absolute;
+  height: 18px;
+  top: calc(50% - 9px);
+  min-width: 8px;
+  border-radius: 3px;
+}
+.gantt-parent .gantt-range > span {
+  height: 10px;
+  top: calc(50% - 5px);
+  border-radius: 0;
+  border-bottom: 3px solid #142b4b55;
+}
+.gantt-end {
+  align-content: center;
+  padding: 16px 20px;
+  color: #62748b;
+  background: #fff;
+  border-left: 1px solid #e3e9f1;
+  font-size: 12px;
+  line-height: 1.9;
+  font-variant-numeric: tabular-nums;
+}
+.planned-dates {
+  color: #344760;
+  font-size: 12px;
+  font-weight: 600;
+}
+.gantt-today {
+  position: absolute;
+  inset-block: 0;
+  border-left: 2px dashed #344d77;
+  z-index: 1;
+  pointer-events: none;
+}
+.gantt-axis {
+  position: relative;
+  background: #edf2f8;
+}
+.gantt-axis time {
+  position: absolute;
+  top: 14px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  color: #53627a;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.gantt-axis time:first-of-type {
+  transform: none;
+  padding-left: 8px;
+}
+.gantt-axis time:last-of-type {
+  transform: translateX(-100%);
+  padding-right: 8px;
+}
+.risk-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+.risk-label[data-risk='red'] {
+  color: #b43e3e;
+}
+.risk-label[data-risk='yellow'] {
+  color: #956410;
+}
+.risk-label[data-risk='green'] {
+  color: #287353;
+}
+.gantt-empty {
+  margin: 0;
+  padding: 32px 24px;
+  color: #62748b;
+}
+@media (max-width: 600px) {
+  .gantt-row {
+    grid-template-columns: 190px 420px 270px;
+    min-width: 880px;
+  }
+  .gantt-label {
+    padding-left: calc(16px + min(var(--depth, 0), 3) * 12px);
+    padding-right: 12px;
+  }
+  .gantt-toolbar {
+    padding: 16px;
+  }
+  .gantt-toolbar p span {
+    display: block;
+    margin: 5px 0 0;
+  }
+  .gantt-legend {
+    padding: 0;
+    gap: 8px 12px;
+  }
+}
+
+:host > .fine-print {
+  margin: 0;
+  padding: 0 24px 12px;
+  color: #62748b;
+  font-size: 12px;
+}
+
+.gantt-child.gantt-parent .task-name {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.milestone-caption {
+  color: #526b88;
+  font-size: 11px;
+  font-weight: 550;
+}
+.execution-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.execution-state > span:first-child {
+  color: #405977;
+  font-size: 11px;
+}
+.planned-dates {
+  display: block;
+}
+.execution-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: 5px 0 0;
+  font-size: 11px;
+}
+.execution-dates div {
+  display: flex;
+  gap: 5px;
+}
+.execution-dates dt {
+  color: #62748b;
+}
+.execution-dates dd {
+  margin: 0;
+}
+.risk-label {
+  padding: 1px 7px;
+  border-radius: 3px;
+  background: #edf2fb;
+  color: #31568d;
+  font-size: 11px;
+}
+.risk-label[data-risk='red'] {
+  background: #fcf0ef;
+}
+.risk-label[data-risk='yellow'] {
+  background: #fcf5e5;
+}
+.risk-label[data-risk='green'] {
+  background: #eaf5ee;
+}
+.risk-label[data-risk='gray'] {
+  color: #52657d;
+  background: #eef1f5;
+}
+@media (max-width: 600px) {
+  .gantt-hint {
+    padding: 0 16px 14px;
+  }
+}
+
+.gantt-axis time,
+.planned-dates,
+.execution-dates,
+.plan-reference,
+.gantt-toolbar strong {
+  font-family: Arial, 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  font-variant-numeric: tabular-nums;
+}

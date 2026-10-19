@@ -1,3 +1,4 @@
+import { base } from './browser-config.mjs';
 import { connect, toolText, root } from './mcp-client.mjs';
 import fs from 'node:fs/promises';
 process.env.CSPD_MCP_PROFILE ||= root + '/.mcp-review-2026-10-12';
@@ -13,7 +14,7 @@ async function ev(code) {
   return m ? JSON.parse(m[1]) : s;
 }
 async function nav(url) {
-  await call('navigate_page', { url: 'http://localhost:4200' + url, type: 'url' });
+  await call('navigate_page', { url: base + url, type: 'url' });
 }
 async function role(id) {
   await ev(
@@ -39,7 +40,7 @@ function issue(id, name, evidence) {
   console.log('GAP', id, name);
 }
 try {
-  const s = toolText(await raw('new_page', { url: 'http://localhost:4200/' }));
+  const s = toolText(await raw('new_page', { url: base + '/' }));
   pageId = Number(s.match(/(\d+):.*\[selected\]/)[1]);
   await role('sales');
   await nav('/sales/leads');

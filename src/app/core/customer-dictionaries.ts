@@ -1,0 +1,65 @@
+/** 非标CRM（飞书多维表格·JP站点）customer dictionary plus explicitly approved demo-only country choices. */
+export const CUSTOMER_COUNTRIES = [
+  'DACH',
+  'Baltic',
+  'Nordic',
+  'East Europe',
+  'Balkan',
+  'Czech Republic',
+  'Spain',
+  'Poland',
+  'Germany',
+  'Hungary',
+  'Albania',
+  'Portugal',
+  'Romania',
+  'Europe',
+  'Bosnia and Herzegovina',
+  'Bulgaria',
+  'Latvia',
+  'Netherlands',
+  'Sweden',
+  'Croatia',
+  'Belgium',
+  'United Kingdom',
+  'Estonia',
+  'Lithuania',
+  'Ukraine',
+  'Finland',
+  'Slovenia',
+  'Moldova',
+  'South Europe',
+  'NWE',
+  '中国',
+  '新加坡',
+] as const;
+
+export const CUSTOMER_REGIONS = [
+  'DACH',
+  'CEE',
+  'Baltics',
+  'Nordics',
+  'Balkans',
+  'Iberia',
+  'Western Europe',
+  'Ukraine',
+] as const;
+
+export const CUSTOMER_EMPLOYEE_SIZES = [
+  '0-100',
+  '100-500',
+  '500-1000',
+  '1000-5000',
+  '>5000',
+] as const;
+export const CUSTOMER_INDUSTRY_ROLES = [
+  'Distributor',
+  'Broker',
+  'EPC',
+  'Integrator',
+  'Developer',
+  'Investor',
+  'Owner',
+  'IPP',
+] as const;
+export const CUSTOMER_STATUSES = ['潜在客户', '忠诚客户', '流失客户', '正式客户'] as const;

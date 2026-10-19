@@ -1,0 +1,28 @@
+<div class="activity-summary">
+  <strong>{{ total() }}<small>次有效沟通</small></strong
+  ><span [class.positive]="change() > 0"
+    >较上个七天周期 {{ change() > 0 ? '+' : '' }}{{ change() }} 次</span
+  >
+</div>
+<div
+  class="activity-chart"
+  role="group"
+  aria-label="最近六周有效沟通次数，每个柱形显示一个七天周期的沟通次数"
+>
+  @for (week of weeks(); track week.from; let last = $last) {
+    <div
+      class="activity-column"
+      tabindex="0"
+      [attr.aria-label]="week.from + '至' + week.to + '：' + week.count + '次有效沟通'"
+    >
+      <span>{{ week.count }}</span>
+      <div class="activity-bar-space">
+        <i [class.latest]="last" [style.height.%]="(week.count / scale()) * 100"></i>
+      </div>
+      <small>{{ week.label }}</small
+      ><span class="chart-tooltip"
+        >{{ week.from }} 至 {{ week.to }}<br />{{ week.count }} 次有效沟通</span
+      >
+    </div>
+  }
+</div>

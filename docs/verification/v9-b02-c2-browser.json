@@ -1,0 +1,60 @@
+{
+  "result": "通过",
+  "checks": [
+    {
+      "width": 1920,
+      "documentOverflow": false,
+      "overflow": false,
+      "heading": "高层项目总览",
+      "summary": "24条业务主线8个已核执行项目0项关联待核",
+      "hasOriginalBoard": true,
+      "pending": true,
+      "foreground": "rgb(23, 38, 59)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "width": 1440,
+      "documentOverflow": false,
+      "overflow": false,
+      "heading": "高层项目总览",
+      "summary": "24条业务主线8个已核执行项目0项关联待核",
+      "hasOriginalBoard": true,
+      "pending": true,
+      "foreground": "rgb(23, 38, 59)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "width": 1024,
+      "documentOverflow": false,
+      "overflow": false,
+      "heading": "高层项目总览",
+      "summary": "24条业务主线8个已核执行项目0项关联待核",
+      "hasOriginalBoard": true,
+      "pending": true,
+      "foreground": "rgb(23, 38, 59)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "width": 768,
+      "documentOverflow": true,
+      "overflow": false,
+      "heading": "高层项目总览",
+      "summary": "24条业务主线8个已核执行项目0项关联待核",
+      "hasOriginalBoard": true,
+      "pending": true,
+      "foreground": "rgb(23, 38, 59)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "width": 390,
+      "documentOverflow": false,
+      "overflow": false,
+      "heading": "高层项目总览",
+      "summary": "24条业务主线8个已核执行项目0项关联待核",
+      "hasOriginalBoard": true,
+      "pending": true,
+      "foreground": "rgb(23, 38, 59)",
+      "background": "rgb(255, 255, 255)"
+    }
+  ]
+}

@@ -1,0 +1,258 @@
+// V9视觉契约。只在显式消费的组件区域使用，业务状态由调用方提供。
+@mixin light-palette {
+  --v9-ink: #183047;
+  --v9-muted: #4e6077;
+  --v9-surface: #ffffff;
+  --v9-ground: #f5f8fc;
+  --v9-line: #c7d2df;
+  --v9-accent: #234fb0;
+  --v9-selected: #e5edff;
+  --v9-success: #176443;
+  --v9-warning: #80500b;
+  --v9-danger: #a32935;
+  --v9-unknown: #536579;
+  color-scheme: light;
+}
+@mixin dark-palette {
+  --v9-ink: #ecf2fa;
+  --v9-muted: #bbccdb;
+  --v9-surface: #102d40;
+  --v9-ground: #071b2b;
+  --v9-line: #567386;
+  --v9-accent: #7de3ee;
+  --v9-selected: #183f55;
+  --v9-success: #89ddae;
+  --v9-warning: #f3c678;
+  --v9-danger: #ffadb5;
+  --v9-unknown: #bbccdb;
+  color-scheme: dark;
+}
+@mixin theme($mode: auto) {
+  @include light-palette;
+  @if $mode == dark {
+    @include dark-palette;
+  }
+  @if $mode == auto {
+    @media (prefers-color-scheme: dark) {
+      @include dark-palette;
+    }
+  }
+  &[data-v9-theme='light'] {
+    @include light-palette;
+  }
+  &[data-v9-theme='dark'] {
+    @include dark-palette;
+  }
+  --v9-font: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --v9-text: 14px;
+  --v9-small: 12px;
+  --v9-space-1: 4px;
+  --v9-space-2: 8px;
+  --v9-space-3: 12px;
+  --v9-space-4: 16px;
+  --v9-space-6: 24px;
+  --v9-space-8: 32px;
+  --v9-radius-panel: 12px;
+  --v9-radius-control: 8px;
+}
+// 子组件在已具备theme的宿主中消费此骨架，不重置父级主题。
+@mixin reading-content {
+  min-width: 0;
+  color: var(--v9-ink);
+  font-family: var(--v9-font);
+  font-size: var(--v9-text);
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+  h1 {
+    font-size: clamp(24px, 2vw, 30px);
+    line-height: 1.3;
+    font-weight: 600;
+    margin: 0;
+  }
+  h2 {
+    font-size: 20px;
+    line-height: 1.4;
+    font-weight: 600;
+    margin: 0 0 var(--v9-space-4);
+  }
+  h3 {
+    font-size: 18px;
+    line-height: 1.45;
+    font-weight: 600;
+    margin: 0 0 var(--v9-space-3);
+  }
+  h4 {
+    font-size: 16px;
+    line-height: 1.45;
+    font-weight: 600;
+    margin: var(--v9-space-6) 0 var(--v9-space-3);
+  }
+  p {
+    margin: var(--v9-space-2) 0 var(--v9-space-4);
+    color: var(--v9-muted);
+    max-width: 80ch;
+  }
+  small,
+  .v9-caption {
+    font-size: var(--v9-small);
+    color: var(--v9-muted);
+  }
+  a {
+    color: var(--v9-accent);
+    text-underline-offset: 3px;
+  }
+  .v9-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--v9-space-4);
+    align-items: center;
+  }
+  .v9-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--v9-space-6);
+    padding: var(--v9-space-4) 0;
+    border-block: 1px solid var(--v9-line);
+  }
+  .v9-summary strong {
+    font-size: clamp(28px, 2.3vw, 36px);
+    line-height: 1.15;
+    font-weight: 600;
+    color: var(--v9-accent);
+    margin-right: var(--v9-space-2);
+  }
+  .v9-status {
+    font-weight: 600;
+    color: var(--v9-unknown);
+  }
+  [data-v9-status='verified'],
+  [data-v9-status='completed'],
+  [data-v9-status='not-required'] {
+    color: var(--v9-success);
+  }
+  [data-v9-status='incomplete'],
+  [data-v9-status='warning'] {
+    color: var(--v9-warning);
+  }
+  [data-v9-status='invalidated'],
+  [data-v9-status='overdue'],
+  [data-v9-status='error'] {
+    color: var(--v9-danger);
+  }
+  [data-v9-status='missing'],
+  [data-v9-status='unknown'] {
+    color: var(--v9-unknown);
+  }
+  .v9-table-wrap {
+    overflow-x: auto;
+    max-width: 100%;
+    min-width: 0;
+    overscroll-behavior-inline: contain;
+    border: 1px solid var(--v9-line);
+    border-radius: var(--v9-radius-control);
+  }
+  .v9-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: var(--v9-text);
+    background: var(--v9-surface);
+    color: var(--v9-ink);
+  }
+  .v9-table th,
+  .v9-table td {
+    padding: var(--v9-space-3);
+    border-bottom: 1px solid var(--v9-line);
+    overflow-wrap: anywhere;
+    vertical-align: top;
+    line-height: 1.6;
+  }
+  .v9-table th {
+    color: var(--v9-ink);
+    font-weight: 600;
+    background: var(--v9-ground);
+  }
+  .v9-table tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+  .v9-table caption {
+    text-align: left;
+    padding: var(--v9-space-3);
+    color: var(--v9-muted);
+  }
+  .v9-number {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .v9-date {
+    white-space: nowrap;
+  }
+  &.v9-panel,
+  .v9-panel {
+    min-width: 0;
+    padding: var(--v9-space-6);
+    border: 1px solid var(--v9-line);
+    border-radius: var(--v9-radius-panel);
+    background: var(--v9-surface);
+  }
+  .v9-notice,
+  .v9-empty {
+    padding: var(--v9-space-3) var(--v9-space-4);
+    border-left: 3px solid var(--v9-line);
+    border-radius: 0 var(--v9-radius-control) var(--v9-radius-control) 0;
+    background: var(--v9-ground);
+    color: var(--v9-muted);
+  }
+  .v9-button {
+    font: inherit;
+    line-height: 1.4;
+    min-height: 40px;
+    cursor: pointer;
+    padding: var(--v9-space-2) var(--v9-space-3);
+    border: 1px solid var(--v9-line);
+    border-radius: var(--v9-radius-control);
+    background: var(--v9-surface);
+    color: var(--v9-ink);
+  }
+  .v9-button:hover:not(:disabled) {
+    background: var(--v9-ground);
+    border-color: var(--v9-accent);
+  }
+  .v9-button:is([aria-pressed='true'], [aria-expanded='true']) {
+    border-color: var(--v9-accent);
+    background: var(--v9-selected);
+    color: var(--v9-accent);
+    box-shadow: inset 0 -2px var(--v9-accent);
+  }
+  .v9-button:disabled {
+    cursor: not-allowed;
+    color: var(--v9-muted);
+    border-style: dashed;
+  }
+  :is(a, button, select, input, summary, [tabindex]):focus-visible {
+    outline: 3px solid var(--v9-accent);
+    outline-offset: 3px;
+  }
+  @media (max-width: 700px) {
+    &.v9-panel,
+    .v9-panel {
+      padding: var(--v9-space-4);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &,
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+@mixin reading-surface($mode: auto) {
+  @include theme($mode);
+  @include reading-content;
+}

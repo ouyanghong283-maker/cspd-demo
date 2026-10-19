@@ -1,7 +1,19 @@
+<app-v10-return />
 @if (project(); as p) {
   <div class="crumb">
-    <a routerLink="/projects">项目工作</a><app-icon name="chevron" /><span>{{ p.id }}</span>
+    <a routerLink="/projects" queryParamsHandling="preserve">项目工作</a
+    ><app-icon name="chevron" /><span>{{ p.id }}</span
+    ><span>合同：{{ p.contractId || '待关联' }}</span
+    ><span>来源：{{ p.opportunityId || '独立项目草稿' }}</span
+    ><span
+      >异常：{{
+        p.needsReview ? '待复核' : openConditions() ? '交底事项待完成' : '无待复核异常'
+      }}</span
+    >
   </div>
+  @if (returnEntry(); as entry) {
+    <a class="text-link" [routerLink]="entry.target">{{ entry.label }}</a>
+  }
   <div class="page-heading">
     <div>
       <h1>{{ p.name }} <app-badge [text]="p.status" /></h1>
@@ -13,16 +25,32 @@
         ><span>{{ p.id }}</span>
       </div>
     </div>
-    <div class="header-actions">
-      @if (!p.opportunityId) { <button class="btn primary" [disabled]="store.role() !== 'pm'" (click)="associateOpportunity(p)">关联商机</button> }
-      @if (p.opportunityId && !p.contractId) { <button class="btn primary" [disabled]="store.role() !== 'pm'" (click)="store.loadProjectContract(p.id)">加载合同 / G3模拟来源</button> }
-      <button class="btn" [disabled]="store.role() !== 'pm'" (click)="forms.project(p)">
-        <app-icon name="edit" />补充项目信息
-      </button>
+    <fieldset
+      class="header-actions"
+      [disabled]="!store.editingWritable()"
+      style="border: 0; padding: 0; margin: 0"
+    >
+      <a
+        class="btn primary"
+        [routerLink]="['/projects', p.id]"
+        [queryParams]="{ tab: 'startup' }"
+        queryParamsHandling="merge"
+        [preserveFragment]="true"
+        >项目启动工作区</a
+      >
+      @if (!p.opportunityId) {
+        <button class="btn primary" (click)="associateOpportunity(p)">关联商机</button>
+      }
+      @if (p.opportunityId && !p.contractId) {
+        <button class="btn primary" (click)="store.loadProjectContract(p.id)">
+          加载合同 / G3模拟来源
+        </button>
+      }
+      <button class="btn" (click)="forms.project(p)"><app-icon name="edit" />补充项目信息</button>
       @if (!p.accepted) {
         <button
           class="btn primary"
-          [disabled]="store.role() !== 'pm' || !p.opportunityId || !p.contractId"
+          [disabled]="!p.opportunityId || !p.contractId"
           (click)="store.acceptProject(p.id)"
         >
           接收项目<app-icon name="check" />
@@ -32,7 +60,7 @@
           >查看来源商机<app-icon name="link"
         /></a>
       }
-    </div>
+    </fieldset>
   </div>
   <div class="step-guide">
     <div class="person-row">
@@ -48,20 +76,21 @@
       {{ store.role() === 'pm' ? '切换PMO继续' : '切换PM继续' }}
     </button>
   </div>
-  @if (guideMode()) { <app-mainline-guide /> }
   @if (openConditions()) {
     <div class="inline-alert warning">
       <app-icon name="info" /><span
         >本项目有{{
           openConditions()
         }}项交底未完成事项。条件不等于已关闭，请补充凭据并由PMO确认。验收与开票正式限制待业务确认。</span
-      ><button class="text-link" (click)="tab.set('启动交底')">查看事项</button>
+      ><button class="text-link" (click)="selectTab('启动交底')">查看事项</button>
     </div>
   }
   @if (p.needsReview) {
     <div class="inline-alert error">
       <app-icon name="info" /><span
-        >资料或关键结果已变化，需重新复核。已发生的提交与接收历史仍保留。</span
+        >待复核：{{
+          store.projectReviewLabels(p)
+        }}。请在对应页面重新确认，已发生的提交与接收历史仍保留。</span
       >
     </div>
   }
@@ -73,812 +102,1444 @@
       <a class="btn" routerLink="/control">选择业务角色</a>
     </section>
   } @else {
-    <div class="tabs">
-      @for (t of tabs; track t) {
-        <button [class.active]="tab() === t" (click)="tab.set(t)">{{ t }}</button>
+    <nav class="tabs" aria-label="项目内容">
+      @for (t of tabs; track t.key) {
+        <button [class.active]="activeRegion().key === t.key" (click)="selectTab(t.sections[0])">
+          {{ t.label }}
+        </button>
       }
-    </div>
-    @if (tab() === '概览') {
-      <div class="briefing-grid">
-        <div>
-          <section class="panel section-spacing">
-            <div class="panel-head">
-              <h2>项目基本信息</h2>
-              <app-badge [text]="p.accepted ? 'PM已接收' : '待PM接收'" />
-            </div>
-            <div class="details-grid">
-              <div>
-                <div class="detail-label">客户名称</div>
-                <div class="detail-value">{{ store.customer(p.customerId)?.name }}</div>
-              </div>
-              <div>
-                <div class="detail-label">国家 / 地区</div>
-                <div class="detail-value">{{ store.customer(p.customerId)?.country }}</div>
-              </div>
-              <div>
-                <div class="detail-label">项目经理</div>
-                <div class="detail-value">{{ p.pm }}</div>
-              </div>
-              <div>
-                <div class="detail-label">容量 / 产品</div>
-                <div class="detail-value">{{ p.capacity }}{{ p.unit }} · 储能系统</div>
-              </div>
-              <div>
-                <div class="detail-label">计划启动</div>
-                <div class="detail-value">{{ p.start || '待补' }}</div>
-              </div>
-              <div>
-                <div class="detail-label">关键联系人</div>
-                <div class="detail-value">
-                  {{ contactName(p) }}
-                </div>
-              </div>
-              <div class="full">
-                <div class="detail-label">现场地址</div>
-                <div class="detail-value">{{ p.site }}</div>
-              </div>
-              <div class="full">
-                <div class="detail-label">现场条件</div>
-                <div class="detail-value">{{ p.siteConditions || '待完善' }}</div>
-              </div>
-            </div>
-          </section>
-          <section class="panel">
-            <div class="panel-head">
-              <h2>合同与商务来源</h2>
-              <app-badge text="已签约 / G3模拟来源" />
-            </div>
-            <div class="details-grid">
-              <div>
-                <div class="detail-label">合同号</div>
-                <div class="detail-value">{{ p.contractId }}</div>
-              </div>
-              <div>
-                <div class="detail-label">商务金额</div>
-                <div class="detail-value">
-                  {{ store.money(contract()?.amount || 0, contract()?.currency || 'CNY') }}
-                </div>
-              </div>
-              <div>
-                <div class="detail-label">来源商机号</div>
-                <a class="text-link" [routerLink]="['/sales/detail', p.opportunityId]">{{
-                  p.opportunityId
-                }}</a>
-              </div>
-              @if (contract()?.quoteVersionId) {
-                <div class="full">
-                  <div class="detail-label">锁定报价来源</div>
-                  <a class="text-link" [routerLink]="['/sales/detail', p.opportunityId]" [queryParams]="{tab: '报价'}">
-                    {{ store.quoteSeries(p.opportunityId || '')?.number }} · V{{ store.quoteVersion(contract()?.quoteVersionId || '')?.number }} · {{ store.money(contract()?.amount || 0, contract()?.currency || 'CNY') }}
-                  </a>
-                </div>
-              }
-              <div class="full">
-                <div class="detail-label">付款条件</div>
-                <div class="detail-value">{{ contract()?.payment }}</div>
-              </div>
-              <div class="full">
-                <div class="detail-label">罚则 / 商务说明</div>
-                <div class="detail-value">{{ contract()?.penalty }}</div>
-              </div>
-            </div>
-            <div class="readonly-line">
-              <app-icon name="lock" /> 商务信息引用同一合同，源字段只读，不执行正式合同审批。
-            </div>
-          </section>
-        </div>
-        <aside>
-          <section class="panel section-spacing">
-            <div class="panel-head"><h3>项目关键状态</h3></div>
-            <div class="details-grid" style="grid-template-columns: 1fr">
-              <div>
-                <div class="detail-label">启动交底</div>
-                <app-badge [text]="p.briefing.review" />
-              </div>
-              <div>
-                <div class="detail-label">SAT现场测试</div>
-                <app-badge [text]="p.sat.complete ? '已完成' : '待完成'" />
-              </div>
-              <div>
-                <div class="detail-label">客户逐项验收</div>
-                <app-badge [text]="p.acceptanceComplete ? '已完成' : '待签认'" />
-              </div>
-              <div>
-                <div class="detail-label">内部移交</div>
-                <app-badge [text]="p.handover.status" />
-              </div>
-            </div>
-          </section>
-          <section class="panel">
-            <div class="panel-head">
-              <h3>同合同关联项目</h3>
-              <button
-                class="icon-btn"
-                aria-label="新增子项目"
-                [disabled]="store.role() !== 'pm'"
-                (click)="addChild()"
-              >
-                <app-icon name="plus" />
-              </button>
-            </div>
-            <div class="subprojects">
-              @for (sibling of siblings(); track sibling.id) {
-                <a [routerLink]="['/projects', sibling.id]"
-                  ><span>{{ sibling.name }}</span
-                  ><app-icon name="chevron"
-                /></a>
-              }
-            </div>
-            <p class="fine-print" style="padding: 0 22px 18px">
-              项目各自排期，不自动分摊商务金额和物料。
-            </p>
-          </section>
-        </aside>
+    </nav>
+    @if (activeRegion().sections.length > 1) {
+      <nav class="type-tabs" aria-label="项目区域内容">
+        @for (section of activeRegion().sections; track section) {
+          <button [class.active]="tab() === section" (click)="selectTab(section)">
+            {{ section }}
+          </button>
+        }
+      </nav>
+    }
+    @if (!store.editingWritable()) {
+      <div class="inline-alert warning">
+        当前标签页没有修改资格，项目内容只读；接管后可继续修改。
       </div>
     }
-    @if (tab() === '团队') {
-      <section class="panel">
-        <div class="panel-head">
-          <div>
-            <h2>项目团队与责任</h2>
-            <p>销售和解决方案来源带出，部门负责人指定，PM确认。</p>
-          </div>
-          <button class="btn" [disabled]="store.role() !== 'pmo'" (click)="forms.assignTeam(p.id)">
-            指定团队
-          </button>
-        </div>
-        @for (member of p.team; track member.id) {
-          <div class="team-row">
-            <span class="avatar">{{ member.person.slice(0, 1) }}</span>
-            <div class="grow">
-              <h3>{{ member.person }} · {{ member.department }}</h3>
-              <p>{{ member.window }} · {{ member.confirmedBy || '待PM确认' }}</p>
-            </div>
-            <app-badge [text]="member.confirmed ? '已确认' : '待确认'" /><button
-              class="btn small"
-              [disabled]="store.role() !== 'pm' || member.confirmed"
-              (click)="store.confirmTeam(p.id, member.id)"
-            >
-              PM确认成员
-            </button>
-          </div>
-        }
-      </section>
-      <div class="source-card space-top">
-        <h3>权限差异演示</h3>
-        <p>
-          PM维护计划，任务责任人更新本人任务；OPM维护要货，质量维护FAT。产研源计划与实际财务结果对所有角色只读。非成员不能查看内部商务资料。
-        </p>
-      </div>
+    @if (tab() === '业务进度') {
+      <app-lifecycle-progress-panel [view]="lifecycleProgress()" />
+      <app-progress-mapping-panel [projectId]="p.id" />
+      <app-node-applicability-panel [projectId]="p.id" />
+    }
+    @if (tab() === '预算费用') {
+      <app-budget-expense-panel [views]="budgetComparison()" [integrity]="budgetIntegrity()" />
     }
     @if (tab() === '启动交底') {
-      <div class="briefing-grid">
-        <div>
-          <section class="panel section-spacing">
-            <div class="panel-head">
-              <h2>启动与交底摘要</h2>
-              <button
-                class="text-link"
-                [disabled]="store.role() !== 'pm'"
-                (click)="forms.project(p)"
-              >
-                补充交底信息
-              </button>
-            </div>
-            <div class="details-grid">
-              <div>
-                <div class="detail-label">计划启动</div>
-                <div class="detail-value">{{ p.start || '待补' }}</div>
-              </div>
-              <div>
-                <div class="detail-label">生产周期</div>
-                <div class="detail-value">{{ p.briefing.production }}</div>
-              </div>
-              <div>
-                <div class="detail-label">发货周期</div>
-                <div class="detail-value">{{ p.briefing.shipping }}</div>
-              </div>
-              <div>
-                <div class="detail-label">产研计划</div>
-                <div class="detail-value">
-                  {{ p.productionApplicable ? '适用，来源只读' : '不适用' }}
-                </div>
-              </div>
-              <div>
-                <div class="detail-label">产品信息</div>
-                <div class="detail-value">{{ contract()?.product }}</div>
-              </div>
-              <div>
-                <div class="detail-label">调试交期</div>
-                <div class="detail-value">{{ p.briefing.commissioning }}</div>
-              </div>
-              <div>
-                <div class="detail-label">FAT计划日期</div>
-                <div class="detail-value">{{ fatDate(p) }}</div>
-              </div>
-              <div class="full">
-                <div class="detail-label">验收标准</div>
-                <div class="detail-value">{{ p.briefing.acceptance || '待补充' }}</div>
-              </div>
-              <div class="full">
-                <div class="detail-label">罚则</div>
-                <div class="detail-value">{{ contract()?.penalty }}</div>
-              </div>
-            </div>
-          </section>
-          <section class="panel">
-            <app-documents
-              [entityId]="p.id"
-              [kinds]="['启动纪要', '启动文件']"
-              title="启动交底资料"
-            />
-          </section>
-        </div>
-        <aside>
-          <section class="panel briefing-result section-spacing">
-            <h3>交底资料检查</h3>
-            @for (item of store.briefingMissing(p.id); track item) {
-              <div class="inline-alert warning">
-                <app-icon name="file" /><span>还缺：{{ item }}</span>
-                <button class="text-link" (click)="locateBriefingItem(item, p)">去补充</button>
-              </div>
-            } @empty {
-              <div class="inline-alert success">
-                <app-icon name="check" />演示提交所需资料已齐备
-              </div>
-            }
-            <button
-              class="btn primary"
-              style="width: 100%"
-              [disabled]="store.role() !== 'pm'"
-              (click)="store.submitBriefing(p.id)"
-            >
-              提交交底
-            </button>
-            <p class="fine-print">完整性校验与审核结果分开，资料齐备不代表审批通过。</p>
-          </section>
-          <section class="panel briefing-result">
-            <h3>OA模拟结果</h3>
-            <div class="result-big"><app-badge [text]="p.briefing.review" /></div>
-            <p>{{ p.briefing.opinion || '等待提交后查看预置模拟结果。' }}</p>
-            <p>退回次数：{{ p.briefing.returns }} · 未完成事项：{{ openConditions() }}项</p>
-            <button class="btn" [disabled]="store.role() !== 'pmo'" (click)="review()">
-              查看OA模拟结果
-            </button>
-            <p class="fine-print">第二次退回产生模拟升级记录，不发送真实消息。</p>
-          </section>
-        </aside>
-      </div>
-      <section class="panel space-top">
-        <div class="panel-head">
-          <h2>交底条件与未完成事项</h2>
-          <app-badge [text]="openConditions() + '项未关闭'" />
-        </div>
-        @for (c of p.conditions; track c.id) {
-          <div class="condition-row">
-            <div>
-              <h3>{{ c.text }}</h3>
-              <app-badge [text]="c.closed ? '已关闭' : '待补凭据'" />
-            </div>
-            <p>
-              责任人：{{ c.owner }} · 期限：{{ c.due }}<br />关闭凭据：{{ c.evidence || '未提供' }}
-            </p>
-            <div class="row-actions">
-              <button
-                class="btn small"
-                [disabled]="c.closed || !['pm', 'solution', 'pmo'].includes(store.role())"
-                (click)="evidence(c)"
-              >
-                补充关闭凭据</button
-              ><button
-                class="btn small"
-                [disabled]="c.closed || store.role() !== 'pmo'"
-                (click)="store.closeCondition(p.id, c.id)"
-              >
-                PMO确认关闭
-              </button>
-            </div>
-          </div>
-        } @empty {
-          <div class="empty">当前没有交底条件</div>
-        }
-      </section>
+      <app-project-startup-panel [projectId]="p.id" />
+    }
+    @if (tab() === '交付入口') {
+      <app-project-delivery-panel [projectId]="p.id" />
+    }
+    @if (activeRegion().key === 'overview') {
+      <app-contract-milestones [contractId]="p.contractId" [readonly]="true" />
     }
     @if (tab() === '计划执行') {
-      <div class="type-tabs">
-        @for (type of planTypes; track type) {
-          <button
-            [class.active]="planType() === type"
-            (click)="planType.set(type); preview.set('')"
-          >
-            {{ type }}
-          </button>
-        }
-      </div>
-      @if (planType() === '产研来源') {
-        <div class="inline-alert">
-          <app-icon name="lock" /><span
-            >OTC产研来源数据只读，更新时间2026-10-09。当前适用性：{{
-              p.productionApplicable ? '适用' : '不适用'
-            }}。{{ p.productionReason }}</span
-          ><button class="text-link" [disabled]="store.role() !== 'pm'" (click)="applicable()">
-            记录适用性
-          </button>
-        </div>
-      }
-      @if (planType() === '开票回款' && openConditions()) {
-        <div class="inline-alert warning">
-          有{{ openConditions() }}项交底未完成事项。开票计划可准备草稿，正式放行限制待确认。
-        </div>
-      }
-      <section class="panel">
-        <div class="panel-head">
+      <section class="panel padded">
+        <div class="section-heading">
           <div>
-            <h2>{{ planType() }}计划</h2>
-            <p>计划、预计与实际日期分别记录，按角色维护。</p>
+            <p>
+              本页直接维护项目已提交计划；交付与售后的项目总览和追踪看板读取同一项目记录。内部WBS预计预算按币种分开汇总，缺失值不会显示为0。
+            </p>
+            <p class="fine-print">
+              当前观察模式：{{ store.dateMode() === 'comparison' ? '预警对比档' : '正常档' }} ·
+              模拟日期 {{ store.observationDate() }}
+            </p>
           </div>
           <div class="row-actions">
-            @if (planType() === '内部WBS') {
-              <button
-                class="btn small"
-                [disabled]="store.role() !== 'pm'"
-                (click)="preview.set('标准')"
-              >
-                标准模板</button
-              ><button
-                class="btn small"
-                [disabled]="store.role() !== 'pm'"
-                (click)="preview.set('区域')"
-              >
-                区域模板</button
-              ><button
-                class="btn small"
-                (click)="planView.set(planView() === 'table' ? 'gantt' : 'table')"
-              >
-                {{ planView() === 'table' ? '甘特视图' : '表格视图' }}
-              </button>
-            }
-            @if (planType() !== '产研来源') {
-              <button
-                class="btn primary small"
-                [disabled]="
-                  store.role() === 'finance' ||
-                  store.role() === 'receiver' ||
-                  store.role() === 'spare'
-                "
-                (click)="editPlan()"
-              >
-                <app-icon name="plus" />新增计划
-              </button>
-            }
+            <a
+              class="btn"
+              routerLink="/delivery-service"
+              [queryParams]="{ tab: 'overview', projectId: p.id }"
+              queryParamsHandling="merge"
+              [preserveFragment]="true"
+              >项目总览</a
+            >
+            <a
+              class="btn"
+              routerLink="/plans/tracking"
+              [queryParams]="{ projectId: p.id }"
+              queryParamsHandling="merge"
+              >追踪看板</a
+            >
           </div>
         </div>
-        @if (preview()) {
-          <div class="template-preview">
-            <div class="section-heading">
-              <h3>{{ preview() }}演示模板预览</h3>
-              <button class="btn primary small" (click)="applyTemplate()">应用模板</button>
-            </div>
-            <p class="fine-print">
-              启动、设计生产、物流、现场调试、验收移交，10条任务。应用将替换内部WBS，不迁移其他类型。
-            </p>
-            <ul>
-              <li>启动交底 / 设计输入确认 / 设备生产排期</li>
-              <li>
-                {{ preview() === '区域' ? '区域物流及当地清关' : '首批发运安排' }} / 到货 / 安装 /
-                调试
-              </li>
-              <li>客户验收 / 资料整理 / 内部移交</li>
-            </ul>
-          </div>
-        }
-        @if (planView() === 'gantt' && planType() === '内部WBS') {
-          <div class="gantt">
-            <div class="gantt-row">
-              <span class="gantt-label">任务名称</span
-              ><span style="flex: 1; display: flex; justify-content: space-between; color: #9aabc2"
-                ><span>10月1日</span><span>10月15日</span><span>11月1日</span><span>11月15日</span
-                ><span>11月30日</span></span
-              ><span class="gantt-end">预计完成</span>
-            </div>
-            @for (plan of plans(); track plan.id) {
-              <div class="gantt-row">
-                <button class="text-link gantt-label" (click)="editPlan(plan)">
-                  {{ plan.name }}
-                </button>
-                <div class="gantt-range">
-                  <span
-                    [style.left.%]="ganttLeft(plan)"
-                    [style.width.%]="ganttWidth(plan)"
-                    [style.background]="plan.status === '已完成' ? '#88bca4' : '#7597e7'"
-                  ></span>
-                </div>
-                <span class="gantt-end">{{ plan.expected.slice(5) }}</span>
+      </section>
+    }
+    <fieldset
+      [disabled]="!store.editingWritable()"
+      style="border: 0; padding: 0; margin: 0; min-width: 0"
+    >
+      @if (tab() === '概览') {
+        <div class="briefing-grid">
+          <div>
+            <section class="panel section-spacing" aria-label="项目概况计划与预算摘要">
+              <div class="panel-head">
+                <h2>计划与预算</h2>
+                <app-badge [text]="budgetSummary().complete ? '预算已填齐' : '预算待补'" />
               </div>
+              <div class="details-grid">
+                @for (total of budgetSummary().filled; track total.currency) {
+                  <div>
+                    <div class="detail-label">
+                      预计预算 · {{ total.currency }}（{{ total.count }}项）
+                    </div>
+                    <div class="detail-value">{{ budgetTotalText(total) }}</div>
+                  </div>
+                }
+                <div>
+                  <div class="detail-label">预算待补</div>
+                  <div class="detail-value">{{ budgetSummary().missingCount }} 项</div>
+                </div>
+                @if (budgetSummary().cancelled.length) {
+                  <div>
+                    <div class="detail-label">已取消任务预算</div>
+                    <div class="detail-value">
+                      @for (total of budgetSummary().cancelled; track total.currency) {
+                        <span>{{ total.currency }} {{ budgetTotalText(total) }}（不计入合计）</span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+              <p class="fine-print">
+                以上为已填部分合计；按 projectId + Plan ID
+                去重、分币种以最小货币单位核算，不跨币种换算，也不代表完整项目预算。
+                @if (budgetSummary().simulatedCount) {
+                  其中模拟样例预算 {{ budgetSummary().simulatedCount }} 项，不代表业务原值。
+                }
+              </p>
+            </section>
+            <section class="panel section-spacing">
+              <div class="panel-head">
+                <h2>项目基本信息</h2>
+                <app-badge [text]="p.accepted ? 'PM已接收' : '待PM接收'" />
+              </div>
+              <div class="details-grid">
+                <div>
+                  <div class="detail-label">客户名称</div>
+                  <div class="detail-value">{{ store.customer(p.customerId)?.name }}</div>
+                </div>
+                <div>
+                  <div class="detail-label">国家 / 地区</div>
+                  <div class="detail-value">{{ store.customer(p.customerId)?.country }}</div>
+                </div>
+                <div>
+                  <div class="detail-label">项目经理</div>
+                  <div class="detail-value">{{ p.pm }}</div>
+                </div>
+                <div>
+                  <div class="detail-label">容量 / 产品</div>
+                  <div class="detail-value">{{ p.capacity }}{{ p.unit }} · 储能系统</div>
+                </div>
+                <div>
+                  <div class="detail-label">计划启动</div>
+                  <div class="detail-value">{{ p.start || '待补' }}</div>
+                </div>
+                <div>
+                  <div class="detail-label">关键联系人</div>
+                  <div class="detail-value">
+                    {{ contactName(p) }}
+                  </div>
+                </div>
+                <div class="full">
+                  <div class="detail-label">现场地址</div>
+                  <div class="detail-value">{{ p.site }}</div>
+                </div>
+                <div class="full">
+                  <div class="detail-label">现场条件</div>
+                  <div class="detail-value">{{ p.siteConditions || '待完善' }}</div>
+                </div>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-head">
+                <h2>合同与商务来源</h2>
+                <app-badge text="已签约 / G3模拟来源" />
+              </div>
+              <div class="details-grid">
+                <div>
+                  <div class="detail-label">合同号</div>
+                  <div class="detail-value">{{ p.contractId }}</div>
+                </div>
+                <div>
+                  <div class="detail-label">商务金额</div>
+                  <div class="detail-value">
+                    {{ store.money(contract()?.amount || 0, contract()?.currency || 'CNY') }}
+                  </div>
+                </div>
+                <div>
+                  <div class="detail-label">来源商机号</div>
+                  <a class="text-link" [routerLink]="['/sales/detail', p.opportunityId]">{{
+                    p.opportunityId
+                  }}</a>
+                </div>
+                @if (contract()?.quoteVersionId) {
+                  <div class="full">
+                    <div class="detail-label">锁定报价来源</div>
+                    <a
+                      class="text-link"
+                      [routerLink]="['/sales/detail', p.opportunityId]"
+                      [queryParams]="{ tab: '报价' }"
+                    >
+                      {{ store.quoteSeries(p.opportunityId || '')?.number }} · V{{
+                        store.quoteVersion(contract()?.quoteVersionId || '')?.number
+                      }}
+                      · {{ store.money(contract()?.amount || 0, contract()?.currency || 'CNY') }}
+                    </a>
+                  </div>
+                }
+                <div class="full">
+                  <div class="detail-label">成交报价引用方案（只读）</div>
+                  @if (dealSolutionReference(); as reference) {
+                    @if (reference.missing) {
+                      <div class="detail-value">
+                        成交方案依据待补：报价或方案稳定ID关联无法核对，不按最新版本推断。
+                      </div>
+                    } @else {
+                      <div class="detail-value">
+                        成交报价V{{ reference.quoteNumber }}引用：
+                        @if (reference.dealVersion) {
+                          核心方案V{{ reference.dealVersion.number }} · {{ reference.dealName }}
+                        } @else {
+                          成交方案依据待补：该报价未关联可识别的核心方案版本。
+                        }
+                      </div>
+                    }
+                  } @else {
+                    <div class="detail-value">成交方案依据待补：没有明确的成交报价版本引用。</div>
+                  }
+                  @if (dealSolutionReference(); as solutionReference) {
+                    <div class="detail-value">
+                      最新上传：{{
+                        !solutionReference.missing
+                          ? solutionReference.latest
+                            ? 'V' +
+                              solutionReference.latest.number +
+                              ' · ' +
+                              solutionReference.latestName
+                            : '尚无版本'
+                          : '待核对'
+                      }}
+                      · 最终确认：{{
+                        !solutionReference.missing
+                          ? solutionReference.final
+                            ? 'V' +
+                              solutionReference.final.number +
+                              ' · ' +
+                              solutionReference.finalName
+                            : '尚未指定'
+                          : '待核对'
+                      }}
+                    </div>
+                  } @else {
+                    <div class="detail-value">最新上传：待核对 · 最终确认：待核对</div>
+                  }
+                </div>
+                <div class="full">
+                  <div class="detail-label">付款条件</div>
+                  <div class="detail-value">{{ contract()?.payment }}</div>
+                </div>
+                <div class="full">
+                  <div class="detail-label">罚则 / 商务说明</div>
+                  <div class="detail-value">{{ contract()?.penalty }}</div>
+                </div>
+              </div>
+              <div class="readonly-line">
+                <app-icon name="lock" /> 商务信息引用同一合同，源字段只读，不执行正式合同审批。
+              </div>
+              <div class="row-actions">
+                <a class="btn small" [routerLink]="['/contracts', p.contractId, 'orders']"
+                  >合同订单历史（只读）</a
+                >
+                <a class="btn small" [routerLink]="['/contracts', p.contractId, 'invoices']"
+                  >合同发票历史（只读）</a
+                >
+              </div>
+            </section>
+          </div>
+          <aside>
+            <section class="panel section-spacing">
+              <div class="panel-head"><h3>项目关键状态</h3></div>
+              <div class="details-grid" style="grid-template-columns: 1fr">
+                <div>
+                  <div class="detail-label">启动交底</div>
+                  <app-badge [text]="p.briefing.review" />
+                </div>
+                <div>
+                  <div class="detail-label">SAT现场测试</div>
+                  <app-badge [text]="p.sat.complete ? '已完成' : '待完成'" />
+                </div>
+                <div>
+                  <div class="detail-label">客户逐项验收</div>
+                  <app-badge [text]="p.acceptanceComplete ? '已完成' : '待签认'" />
+                </div>
+                <div>
+                  <div class="detail-label">内部移交</div>
+                  <app-badge [text]="p.handover.status" />
+                </div>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-head">
+                <h3>同合同关联项目</h3>
+                <button class="icon-btn" aria-label="新增子项目" (click)="addChild()">
+                  <app-icon name="plus" />
+                </button>
+              </div>
+              <div class="subprojects">
+                @for (sibling of siblings(); track sibling.id) {
+                  <a [routerLink]="['/projects', sibling.id]"
+                    ><span>{{ sibling.name }}</span
+                    ><app-icon name="chevron"
+                  /></a>
+                }
+              </div>
+              <p class="fine-print" style="padding: 0 22px 18px">
+                项目各自排期，不自动分摊商务金额和物料。
+              </p>
+            </section>
+          </aside>
+        </div>
+      }
+      @if (tab() === '团队') {
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>项目团队与责任</h2>
+              <p>销售和解决方案来源带出，部门负责人指定，PM确认。</p>
+            </div>
+            <button class="btn" (click)="forms.assignTeam(p.id)">指定团队</button>
+          </div>
+          @for (member of p.team; track member.id) {
+            <div class="team-row">
+              <span class="avatar">{{ member.person.slice(0, 1) }}</span>
+              <div class="grow">
+                <h3>{{ member.person }} · {{ member.department }}</h3>
+                <p>{{ member.window }} · {{ member.confirmedBy || '待PM确认' }}</p>
+              </div>
+              <app-badge [text]="member.confirmed ? '已确认' : '待确认'" /><button
+                class="btn small"
+                [disabled]="member.confirmed"
+                (click)="store.confirmTeam(p.id, member.id)"
+              >
+                PM确认成员
+              </button>
+            </div>
+          }
+        </section>
+        <div class="source-card space-top">
+          <h3>权限差异演示</h3>
+          <p>
+            PM维护计划，任务责任人更新本人任务；OPM维护要货，质量维护FAT。产研源计划与实际财务结果对所有角色只读。非成员不能查看内部商务资料。
+          </p>
+        </div>
+      }
+      @if (tab() === '启动交底') {
+        <div class="briefing-grid">
+          <div>
+            <section class="panel section-spacing">
+              <div class="panel-head">
+                <h2>启动与交底摘要</h2>
+                <button class="text-link" (click)="forms.project(p)">补充交底信息</button>
+              </div>
+              <div class="details-grid">
+                <div>
+                  <div class="detail-label">计划启动</div>
+                  <div class="detail-value">{{ p.start || '待补' }}</div>
+                </div>
+                <div>
+                  <div class="detail-label">生产周期</div>
+                  <div class="detail-value">{{ p.briefing.production }}</div>
+                </div>
+                <div>
+                  <div class="detail-label">发货周期</div>
+                  <div class="detail-value">{{ p.briefing.shipping }}</div>
+                </div>
+                <div>
+                  <div class="detail-label">产研计划</div>
+                  <div class="detail-value">
+                    {{ p.productionApplicable ? '适用，来源只读' : '不适用' }}
+                  </div>
+                </div>
+                <div>
+                  <div class="detail-label">产品信息</div>
+                  <div class="detail-value">{{ contract()?.product }}</div>
+                </div>
+                <div>
+                  <div class="detail-label">调试交期</div>
+                  <div class="detail-value">{{ p.briefing.commissioning }}</div>
+                </div>
+                <div>
+                  <div class="detail-label">FAT计划日期</div>
+                  <div class="detail-value">{{ fatDate(p) }}</div>
+                </div>
+                <div class="full">
+                  <div class="detail-label">验收标准</div>
+                  <div class="detail-value">{{ p.briefing.acceptance || '待补充' }}</div>
+                </div>
+                <div class="full">
+                  <div class="detail-label">罚则</div>
+                  <div class="detail-value">{{ contract()?.penalty }}</div>
+                </div>
+              </div>
+            </section>
+          </div>
+          <aside>
+            <section class="panel briefing-result section-spacing">
+              <h3>交底资料检查</h3>
+              @for (item of store.briefingMissing(p.id); track item) {
+                <div class="inline-alert warning">
+                  <app-icon name="file" /><span>还缺：{{ item }}</span>
+                  <button class="text-link" (click)="locateBriefingItem(item, p)">去补充</button>
+                </div>
+              } @empty {
+                <div class="inline-alert success">
+                  <app-icon name="check" />演示提交所需资料已齐备
+                </div>
+              }
+              <button class="btn primary" style="width: 100%" (click)="store.submitBriefing(p.id)">
+                提交旧版交底（门禁外用）
+              </button>
+              <p class="fine-print">
+                这是旧版资料的完整性提交，不产生交底版本、G4
+                或移交；正式门禁请用本页上方的显式动作。
+              </p>
+            </section>
+            <section class="panel briefing-result">
+              <h3>旧版交底模拟结果</h3>
+              <div class="result-big"><app-badge [text]="p.briefing.review" /></div>
+              <p>{{ p.briefing.opinion || '等待提交后查看预置模拟结果。' }}</p>
+              <p>退回次数：{{ p.briefing.returns }} · 未完成事项：{{ openConditions() }}项</p>
+              <button class="btn" (click)="review()">查看OA模拟结果</button>
+              <p class="fine-print">
+                旧版记录供兼容查看，不代表G4或正式移交；G4与正式移交请在本页“合同交底与显式门禁”中分别完成。第二次退回只产生站内模拟提醒。
+              </p>
+            </section>
+          </aside>
+        </div>
+        <section class="panel space-top">
+          <div class="panel-head">
+            <h2>交底条件与未完成事项</h2>
+            <app-badge [text]="openConditions() + '项未关闭'" />
+          </div>
+          @for (c of p.conditions; track c.id) {
+            <div class="condition-row">
+              <div>
+                <h3>{{ c.text }}</h3>
+                <app-badge [text]="c.closed ? '已关闭' : '待补凭据'" />
+              </div>
+              <p>
+                责任人：{{ c.owner }} · 期限：{{ c.due }}<br />关闭凭据：{{
+                  c.evidence || '未提供'
+                }}
+              </p>
+              <div class="row-actions">
+                <button class="btn small" [disabled]="c.closed" (click)="evidence(c)">
+                  补充关闭凭据</button
+                ><button
+                  class="btn small"
+                  [disabled]="c.closed"
+                  (click)="store.closeCondition(p.id, c.id)"
+                >
+                  PMO确认关闭
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty">当前没有交底条件</div>
+          }
+        </section>
+      }
+      @if (tab() === '计划执行') {
+        <div
+          [class.v9-plan-reading]="planType() !== '内部WBS' && planType() !== '客户主节点'"
+          data-v9-theme="light"
+        >
+          <div class="type-tabs" [class.business-tabs]="ganttCapable()">
+            @for (type of planTypes; track type) {
+              <button
+                [class.active]="planType() === type"
+                [attr.aria-pressed]="planType() === type"
+                (click)="selectPlanType(type)"
+              >
+                {{ type }}
+              </button>
             }
           </div>
-        } @else {
+          @if (planType() === '内部WBS') {
+            <section class="panel padded wbs-budget" aria-label="内部WBS分币种预算摘要">
+              <div class="section-heading">
+                <div>
+                  <h3>预计预算 <span class="budget-subtitle">已填部分合计</span></h3>
+                </div>
+                <app-badge [text]="budgetSummary().complete ? '预算已填齐' : '预算待补'" />
+              </div>
+              @if (budgetSummary().filled.length) {
+                <ul class="budget-totals">
+                  @for (total of budgetSummary().filled; track total.currency) {
+                    <li>
+                      <span
+                        >{{ total.currency }} 小计 <small>{{ total.count }} 项</small></span
+                      ><strong>{{ budgetTotalText(total) }}</strong>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p>尚无已填预计预算；缺失不按0计入。</p>
+              }
+              <p class="fine-print">
+                内部WBS共 {{ budgetSummary().totalCount }} 项 · 已填
+                {{ budgetSummary().filledCount }} 项 · {{ budgetPendingText }}
+                {{ budgetSummary().missingCount }} 项
+                @if (budgetSummary().simulatedCount) {
+                  · 含模拟样例预算 {{ budgetSummary().simulatedCount }} 项，不代表业务原值
+                }
+              </p>
+              <details class="budget-details">
+                <summary>查看统计口径与待补明细</summary>
+                <p class="fine-print">
+                  按 projectId + Plan ID
+                  去重，仅统计有效内部WBS（含已完成）；取消任务单独列出；不跨币种换算、不推断总额。
+                </p>
+                @if (budgetSummary().pendingReviewCount) {
+                  <p class="fine-print">
+                    币种待核
+                    {{ budgetSummary().pendingReviewCount }} 项，不并入合计也不自动换算为CNY：
+                    @for (total of budgetSummary().pendingReview; track total.currency) {
+                      <span
+                        >{{ total.currency }} {{ budgetTotalText(total) }}（{{
+                          total.count
+                        }}
+                        项）</span
+                      >
+                    }
+                  </p>
+                }
+                @if (budgetSummary().cancelled.length) {
+                  <p class="fine-print">
+                    已取消任务独立标注并从当前有效合计排除：
+                    @for (total of budgetSummary().cancelled; track total.currency) {
+                      <span
+                        >{{ total.currency }} {{ budgetTotalText(total) }}（{{
+                          total.count
+                        }}
+                        项）</span
+                      >
+                    }
+                  </p>
+                }
+                @if (budgetSummary().missingCount) {
+                  <p class="fine-print">
+                    待补计划ID：{{ budgetSummary().missingPlanIds.join('、') }}
+                  </p>
+                }
+              </details>
+            </section>
+          }
+          @if (focusedPlanId()) {
+            <div class="inline-alert">
+              <app-icon name="info" /><span
+                >已定位：Plan ID {{ focusedPlanId() }}（{{
+                  focusedPlan()?.name || '该计划不在当前项目'
+                }}）</span
+              >
+              @if (focusedPlan(); as focus) {
+                <button
+                  class="text-link"
+                  [disabled]="!store.canEditPlan(focus) || !store.editingWritable()"
+                  (click)="editPlan(focus)"
+                >
+                  处理该计划
+                </button>
+              }
+            </div>
+          }
+          @for (item of store.planReadiness(p.id); track item.planId) {
+            <div class="inline-alert warning">
+              <app-icon name="info" /><span
+                >计划待补：{{ item.name }}（{{ item.missing.join('、') }}）· Plan ID
+                {{ item.planId }}</span
+              >
+              @if (planById(item.planId); as incompletePlan) {
+                @if (store.canEditPlan(incompletePlan)) {
+                  <button
+                    class="text-link"
+                    [disabled]="!store.editingWritable()"
+                    (click)="editPlan(incompletePlan)"
+                  >
+                    补充计划
+                  </button>
+                }
+              }
+            </div>
+          }
+          @if (
+            planType() === '要货发货' || planType() === '调试备件' || planType() === '开票回款'
+          ) {
+            <section class="plan-reading-summary" aria-label="交付来源与办理摘要">
+              <div class="v9-toolbar">
+                <h2>{{ planType() }}计划</h2>
+                <span class="v9-status">{{
+                  store.editingWritable() ? '本地办理' : '当前工作区只读'
+                }}</span>
+              </div>
+              <dl class="plan-summary-grid">
+                <div>
+                  <dt>项目与业务PM</dt>
+                  <dd>{{ p.name }} · {{ p.pm }}</dd>
+                </div>
+                <div>
+                  <dt>日期口径</dt>
+                  <dd>
+                    需求/计划、预计、实际分别记录；风险按观察日 {{ store.observationDate() }} 判断。
+                  </dd>
+                </div>
+                <div>
+                  <dt>来源引用</dt>
+                  <dd>合同、订单及财务结果保持只读；数量、批次及接收信息见下方计划明细。</dd>
+                </div>
+              </dl>
+              @if (planType() === '调试备件') {
+                <p>核对责任人、需求日期与备件清单；附件沿用原模拟凭据语义。</p>
+              }
+              @if (planType() === '开票回款') {
+                <p>合同财务金额与模拟费用分别呈现，不相加；预算详情由唯一费用面板提供。</p>
+              }
+            </section>
+            <details>
+              <summary>
+                {{ planType() === '开票回款' ? '查看只读预算费用依据' : '办理任务关联与执行要求' }}
+              </summary>
+              @if (planType() === '开票回款') {
+                <app-budget-expense-panel
+                  [readonlyMode]="true"
+                  [views]="budgetComparison()"
+                  [integrity]="budgetIntegrity()"
+                />
+              } @else {
+                <app-progress-mapping-panel [projectId]="p.id" /><app-node-applicability-panel
+                  [projectId]="p.id"
+                />
+              }
+            </details>
+          }
+          @if (planType() === '产研来源' || planType() === 'FAT测试') {
+            <section class="plan-reading-summary" aria-label="计划来源与办理摘要">
+              <div class="v9-toolbar">
+                <h2>{{ planType() === '产研来源' ? '产研来源计划' : 'FAT测试与报告' }}</h2>
+                <span class="v9-status">{{
+                  planType() === '产研来源'
+                    ? '外围来源只读'
+                    : store.editingWritable()
+                      ? '本地办理'
+                      : '当前工作区只读'
+                }}</span>
+              </div>
+              <p>
+                {{
+                  planType() === '产研来源'
+                    ? '核对留存来源及其适用范围；来源不代表实时同步。'
+                    : '分别核对测试计划、实际结论和报告凭据；计划日期不代表测试通过。'
+                }}
+              </p>
+              <dl class="plan-summary-grid">
+                <div>
+                  <dt>项目范围</dt>
+                  <dd>{{ p.name }} · {{ p.id }}</dd>
+                </div>
+                <div>
+                  <dt>本类计划</dt>
+                  <dd>{{ plans().length }} 条</dd>
+                </div>
+                <div>
+                  <dt>日期口径</dt>
+                  <dd>计划 / 预计 / 实际分别记录；缺失显示待补</dd>
+                </div>
+                @if (planType() === '产研来源') {
+                  <div>
+                    <dt>适用性</dt>
+                    <dd>
+                      {{ p.productionApplicable ? '适用' : '不适用' }} ·
+                      {{ p.productionReason || '原因待补' }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>来源系统</dt>
+                    <dd>OTC / 产研留存样例，逐行核对来源</dd>
+                  </div>
+                  <div>
+                    <dt>来源与更新时间</dt>
+                    <dd>{{ researchSourceSummary() }}</dd>
+                  </div>
+                } @else {
+                  <div>
+                    <dt>FAT报告</dt>
+                    <dd>
+                      {{
+                        store.has(p.id, 'FAT报告')
+                          ? '已有既有凭据记录，见下方报告'
+                          : '报告待补：缺少报告不能完成'
+                      }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>完成条件</dt>
+                    <dd>合格结论 + 实际完成日期 + FAT报告</dd>
+                  </div>
+                  <div>
+                    <dt>附件语义</dt>
+                    <dd>沿用既有模拟报告凭据，不代表保存真实原件</dd>
+                  </div>
+                }
+              </dl>
+              @if (!store.editingWritable()) {
+                <p class="v9-notice" role="status">
+                  当前工作区只读；取得修改权后才能保存办理结果。
+                </p>
+              }
+            </section>
+          }
+          @if (planType() === '产研来源') {
+            <div class="inline-alert">
+              <app-icon name="lock" /><span
+                >OTC产研计划只展示本项目留存的样例；具体字段和更新时间以逐行来源引用为准，缺失时标待核。当前适用性：{{
+                  p.productionApplicable ? '适用' : '不适用'
+                }}。{{ p.productionReason }}</span
+              ><button
+                class="text-link"
+                [disabled]="!store.editingWritable()"
+                (click)="applicable()"
+              >
+                记录本地适用性
+              </button>
+            </div>
+          }
+          @if (planType() === '开票回款' && openConditions()) {
+            <div class="inline-alert warning">
+              有{{ openConditions() }}项交底未完成事项。开票计划可准备草稿，正式放行限制待确认。
+            </div>
+          }
+          @if (planType() === '要货发货') {
+            <section class="panel padded" aria-label="合同销售订单只读引用">
+              <div class="section-heading">
+                <div>
+                  <h3>合同销售订单 · 同一稳定只读记录</h3>
+                  <p>
+                    合同订单与明细已停用新增与编辑；项目与交付继续按订单稳定ID只读引用同一批已提交记录，不复制订单数据。
+                  </p>
+                </div>
+                <a class="btn small" [routerLink]="['/contracts', p.contractId, 'orders']"
+                  >打开合同订单历史（只读）</a
+                >
+              </div>
+              @for (order of store.ordersForProject(p.id); track order.id) {
+                <article class="cost-record">
+                  <strong>{{ order.orderNumber }} · {{ order.id }}</strong>
+                  <p>
+                    修订{{ order.revision }} · {{ order.status }} ·
+                    {{ store.money(order.amount, order.currency) }} · 订单交期
+                    {{ order.deliveryDate || '待确认' }}
+                  </p>
+                  @for (line of store.orderLines(order.id); track line.id) {
+                    <p>
+                      {{ line.id }} · {{ line.productDescription }} · SAP
+                      {{ line.sapMaterialNumber || '待提供' }} · {{ line.quantity }}
+                      {{ line.unit }} · 批次 {{ line.batchNumber || '待确认' }} · 需求交期
+                      {{ line.requestedDeliveryDate || '待确认' }}
+                    </p>
+                  }
+                </article>
+              } @empty {
+                <p>当前项目尚未关联销售订单；合同内新增订单入口已停用，请联系历史数据维护方。</p>
+              }
+            </section>
+          }
+          <section
+            class="panel"
+            [class.wbs-board]="planType() === '内部WBS'"
+            [class.plan-board]="ganttCapable()"
+          >
+            <div class="panel-head">
+              <div>
+                <h2>{{ planType() }}计划</h2>
+                <p>
+                  {{
+                    planType() === '内部WBS'
+                      ? '按任务层级查看计划，追踪负责人、交付日期与执行风险。'
+                      : planType() === '客户主节点'
+                        ? '聚焦客户交付里程碑，核对计划承诺、预计日期与节点风险。'
+                        : '计划、预计与实际日期分别记录，按角色维护。'
+                  }}
+                </p>
+              </div>
+              <div class="row-actions">
+                @if (planType() === '内部WBS') {
+                  <button class="btn small" (click)="preview.set('标准')">标准模板</button
+                  ><button class="btn small" (click)="preview.set('区域')">区域模板</button>
+                }
+                @if (ganttCapable()) {
+                  <button class="btn small view-switch" (click)="togglePlanView()">
+                    {{ planView() === 'table' ? '甘特视图' : '表格视图' }}
+                  </button>
+                }
+                @if (planType() !== '产研来源') {
+                  <button
+                    class="btn primary small add-plan"
+                    [disabled]="!store.editingWritable()"
+                    (click)="editPlan()"
+                  >
+                    <app-icon name="plus" />新增计划
+                  </button>
+                }
+              </div>
+            </div>
+            @if (preview()) {
+              <div class="template-preview">
+                <div class="section-heading">
+                  <h3>{{ preview() }}演示模板预览</h3>
+                  <button class="btn primary small" (click)="applyTemplate()">应用模板</button>
+                </div>
+                <p class="fine-print">
+                  启动、设计生产、物流、现场调试、验收移交，10条任务。应用将替换内部WBS，不迁移其他类型。
+                </p>
+                <ul>
+                  <li>启动交底 / 设计输入确认 / 设备生产排期</li>
+                  <li>
+                    {{ preview() === '区域' ? '区域物流及当地清关' : '首批发运安排' }} / 到货 / 安装
+                    / 调试
+                  </li>
+                  <li>客户验收 / 资料整理 / 内部移交</li>
+                </ul>
+              </div>
+            }
+            @if (warningIdentityGaps().length) {
+              <p class="fine-print">预警接收身份待补：{{ warningIdentityGaps().join('；') }}</p>
+            }
+            @if (planView() === 'gantt' && ganttCapable()) {
+              <div class="plan-observation">
+                <span class="observation-label">演示日期</span>
+                <div class="observation-options" role="group" aria-label="切换演示日期">
+                  <button
+                    class="btn small"
+                    [class.primary]="store.dateMode() === 'normal'"
+                    [attr.aria-pressed]="store.dateMode() === 'normal'"
+                    [disabled]="!store.editingWritable()"
+                    (click)="store.setDateMode('normal')"
+                  >
+                    基准日期 10-15
+                  </button>
+                  <button
+                    class="btn small"
+                    [class.primary]="store.dateMode() === 'comparison'"
+                    [attr.aria-pressed]="store.dateMode() === 'comparison'"
+                    [disabled]="!store.editingWritable()"
+                    (click)="store.preparePlanRiskDemo(p.id, planType())"
+                  >
+                    三色演示 10-22
+                  </button>
+                </div>
+                <details class="demo-explanation">
+                  <summary>演示说明</summary>
+                  <p>
+                    正常档以 10-15 为基准；点击“三色演示”切换至
+                    10-22，查看正常、临期和超期。旧数据缺少日期或预警天数时仍标灰；缺少三色样例时补充
+                    3 条独立的模拟节点，保留原计划。
+                  </p>
+                </details>
+              </div>
+              <app-plan-gantt
+                [plans]="plans()"
+                [observationDate]="store.observationDate()"
+                (editPlan)="editPlan($event)"
+              />
+            } @else {
+              <div
+                class="table-wrap"
+                role="region"
+                [attr.aria-label]="planType() + '计划表，可横向滚动'"
+                tabindex="0"
+              >
+                <table>
+                  <thead>
+                    <tr>
+                      <th>
+                        {{ planType() === '客户主节点' ? '客户里程碑' : 'WBS / 节点 / 任务' }}
+                      </th>
+                      <th>责任人</th>
+                      <th>计划起止 / 需求</th>
+                      <th>预计日期</th>
+                      <th>实际日期</th>
+                      <th>状态 / 结论</th>
+                      <th>预警天数 / 日期</th>
+                      <th>风险判断</th>
+                      <th>预计预算</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of planRows(); track row.plan.id) {
+                      @let plan = row.plan;
+                      <tr
+                        [attr.data-plan-id]="plan.id"
+                        [class.plan-focused]="isFocusedPlan(plan)"
+                        [class.focused-plan]="isFocusedPlan(plan)"
+                        [class.wbs-parent-row]="row.childCount > 0"
+                        [style.--wbs-depth]="row.depth"
+                      >
+                        <td>
+                          <strong>
+                            @if (plan.type === '内部WBS') {
+                              {{ plan.wbsCode || 'WBS待补' }} ·
+                            }
+                            {{ plan.name }}</strong
+                          >
+                          <p class="plan-id">Plan ID：{{ plan.id }}</p>
+                          <p>
+                            @if (planType() === '要货发货' || planType() === 'FAT测试') {
+                              <span
+                                >{{ plan.batch }} · {{ plan.quantity }}件 {{ plan.product }}</span
+                              >
+                            } @else {
+                              <span>{{ plan.note || plan.type }}</span>
+                            }
+                          </p>
+                          @if (plan.type === '内部WBS') {
+                            <p>
+                              计划天数 {{ plan.durationDays ?? '待补' }} · 前置
+                              {{ plan.predecessor || '无 / 待核' }} ·
+                              {{ plan.relationNote || '关系说明待补' }} ·
+                              {{ plan.weekWindow || '周窗口待补' }}
+                            </p>
+                          }
+                          <p>
+                            来源：{{ plan.sourceReference || '来源待补' }} ·
+                            {{ plan.sourceStatus || '待核'
+                            }}{{
+                              plan.sourceUpdatedAt
+                                ? ' · 更新于 ' + plan.sourceUpdatedAt
+                                : ' · 更新时间待补'
+                            }}{{
+                              plan.sourceOpportunityPlanId
+                                ? ' · 商机源节点 ' + plan.sourceOpportunityPlanId
+                                : ''
+                            }}
+                          </p>
+                          @if (plan.linked) {
+                            <p>客户节点：{{ plan.linked }}</p>
+                            @if (linkedMilestone(plan, p); as milestone) {
+                              <p>
+                                客户日期 {{ milestone.end }} · 内部预计 {{ plan.expected }} · 偏差
+                                {{ milestoneDifference(plan, p) }}
+                              </p>
+                            }
+                          }
+                        </td>
+                        <td class="plan-owner">{{ plan.owner }}</td>
+                        <td class="nowrap">
+                          {{ plan.start || '开始日期待补' }}
+                          <p>至 {{ plan.end || '结束日期待补' }}</p>
+                        </td>
+                        <td class="nowrap">{{ plan.expected || '待确认' }}</td>
+                        <td class="nowrap">
+                          {{ plan.actual || '尚未完成' }}
+                          <p>
+                            {{
+                              plan.actual ? plan.actualSourceReference || '实际日期来源待核' : ''
+                            }}
+                          </p>
+                        </td>
+                        <td>
+                          <app-badge [text]="plan.status" />
+                          @if (plan.type === 'FAT测试') {
+                            <p>{{ plan.result || '测试结论待补' }}</p>
+                          }
+                        </td>
+                        <td class="nowrap">
+                          {{ plan.warningLeadDays ?? '待补'
+                          }}{{ plan.warningLeadDays != null ? '天' : '' }}
+                          <p>{{ warningDate(plan) || '日期待补' }}</p>
+                          @if (plan.warningLeadDaysSource) {
+                            <p>{{ plan.warningLeadDaysSource }}</p>
+                          }
+                        </td>
+                        <td>
+                          @if (plan.type === '内部WBS' || plan.type === '客户主节点') {
+                            @if (planRisk(plan); as risk) {
+                              <app-badge [text]="risk.label" [risk]="risk.level" />
+                              @if (risk.missing.length) {
+                                <p class="fine-print">待补：{{ risk.missing.join('、') }}</p>
+                              }
+                            }
+                          } @else {
+                            <span class="fine-print">—</span>
+                          }
+                        </td>
+                        <td class="nowrap">
+                          <span [attr.data-budget]="budgetState(plan)">{{ budgetCell(plan) }}</span>
+                        </td>
+                        <td>
+                          <div class="row-actions">
+                            @if (planType() === '产研来源') {
+                              <app-icon name="lock" />
+                            } @else {
+                              <button
+                                class="text-link"
+                                [disabled]="!store.canEditPlan(plan) || !store.editingWritable()"
+                                (click)="editPlan(plan)"
+                              >
+                                编辑</button
+                              ><button
+                                class="icon-btn"
+                                aria-label="删除计划行"
+                                [disabled]="!store.canEditPlan(plan) || !store.editingWritable()"
+                                (click)="deletePlan(plan)"
+                              >
+                                <app-icon name="trash" />
+                              </button>
+                              @if (planType() === '调试备件') {
+                                <button
+                                  class="btn small"
+                                  (click)="store.submitSpare(p.id, plan.id)"
+                                >
+                                  提交需求
+                                </button>
+                              }
+                            }
+                          </div>
+                        </td>
+                      </tr>
+                    } @empty {
+                      <tr>
+                        <td colspan="10" class="empty">
+                          {{
+                            planType() === '产研来源'
+                              ? p.productionApplicable
+                                ? '适用性已记录，但来源计划待补；不会推断为空即完成。'
+                                : '不适用'
+                              : '当前没有此类计划，可新建或应用模板。'
+                          }}
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+            @if (planType() === '开票回款') {
+              <div class="readonly-line">
+                <div class="section-heading">
+                  <h3>实际开票 / 回款 · S4只读样例</h3>
+                  <app-badge text="模拟来源" />
+                </div>
+                <p>费用及回款使用同一模拟SAP／CRM快照。</p>
+                <button class="text-link" (click)="selectTab('财务信息')">查看财务信息</button>
+              </div>
+            }
+            @if (planType() === '产研来源') {
+              <div class="readonly-line">
+                来源OTC / 生产样例 · 关联项目{{ p.id }} · 不做跨项目集中采购自动分摊
+              </div>
+            }
+          </section>
+          @if (planType() === 'FAT测试' || planType() === '调试备件') {
+            <section class="panel space-top">
+              <app-documents
+                [entityId]="p.id"
+                [kinds]="planType() === 'FAT测试' ? ['FAT报告'] : ['备件清单']"
+                [title]="planType() === 'FAT测试' ? 'FAT执行报告' : '调试备件清单'"
+              />
+            </section>
+          }
+        </div>
+      }
+      @if (tab() === '执行记录') {
+        <div class="inline-alert">
+          <app-icon name="info" /><span
+            >计划、客户承诺和实际日期分开保存；实际日期来自明确录入与来源证据。记录缺失不代表已完成，也不代表已评估无风险。所有条目保留本地操作历史。</span
+          >
+        </div>
+        <section class="panel space-top">
+          <div class="panel-head">
+            <div>
+              <h2>项目风险 / 问题</h2>
+              <p>类别、等级、可能性和状态按来源填写；无法核实的值请标为待核。</p>
+            </div>
+            <button class="btn primary" (click)="addRiskRecord()">新增记录</button>
+          </div>
+          @for (risk of p.riskRecords || []; track risk.id) {
+            <div class="condition-row">
+              <div>
+                <h3>{{ risk.category }} · {{ risk.level }} · {{ risk.likelihood }}</h3>
+                <app-badge [text]="risk.status" />
+                <app-badge [text]="'来源' + risk.sourceStatus" />
+              </div>
+              <p>
+                {{ risk.description }}<br />来源：{{ risk.sourceReference }} · 登记人
+                {{ risk.operator }} · {{ risk.createdAt.slice(0, 10) }}
+              </p>
+            </div>
+          } @empty {
+            <div class="empty">尚无风险 / 问题记录；这不表示已经评估为无风险。</div>
+          }
+        </section>
+        <section class="panel space-top">
+          <div class="panel-head">
+            <div>
+              <h2>客户沟通记录</h2>
+              <p>手工摘录有来源支持的沟通，不导入邮件或即时消息时间线。</p>
+            </div>
+            <button class="btn primary" (click)="addCommunicationRecord()">新增沟通记录</button>
+          </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>节点 / 任务</th>
-                  <th>责任人</th>
-                  <th>计划起止 / 需求</th>
-                  <th>预计日期</th>
-                  <th>实际日期</th>
-                  <th>状态 / 结论</th>
-                  <th>操作</th>
+                  <th>发生日期（手工录入）</th>
+                  <th>类型</th>
+                  <th>摘要</th>
+                  <th>来源</th>
+                  <th>登记人</th>
                 </tr>
               </thead>
               <tbody>
-                @for (plan of plans(); track plan.id) {
+                @for (record of p.communicationRecords || []; track record.id) {
                   <tr>
+                    <td>{{ record.date }}</td>
+                    <td>{{ record.type }}</td>
+                    <td>{{ record.summary }}</td>
                     <td>
-                      <strong>{{ plan.name }}</strong>
-                      <p>
-                        @if (planType() === '要货发货' || planType() === 'FAT测试') {
-                          <span>{{ plan.batch }} · {{ plan.quantity }}件 {{ plan.product }}</span>
-                        } @else {
-                          <span>{{ plan.note || plan.type }}</span>
-                        }
-                      </p>
-                      @if (plan.linked) {
-                        <p>客户节点：{{ plan.linked }}</p>
-                        @if (linkedMilestone(plan, p); as milestone) {
-                          <p>客户日期 {{ milestone.end }} · 内部预计 {{ plan.expected }} · 偏差 {{ milestoneDifference(plan, p) }}</p>
-                        }
-                      }
+                      {{ record.sourceReference }}
+                      <p>{{ record.sourceStatus }}</p>
                     </td>
-                    <td>{{ plan.owner }}</td>
-                    <td class="nowrap">
-                      {{ plan.start }}
-                      <p>至 {{ plan.end }}</p>
-                    </td>
-                    <td class="nowrap">{{ plan.expected || '待确认' }}</td>
-                    <td class="nowrap">{{ plan.actual || '尚未完成' }}</td>
-                    <td>
-                      <app-badge [text]="plan.status" />
-                      @if (plan.type === 'FAT测试') {
-                        <p>{{ plan.result }}</p>
-                      }
-                    </td>
-                    <td>
-                      <div class="row-actions">
-                        @if (planType() === '产研来源') {
-                          <app-icon name="lock" />
-                        } @else {
-                          <button
-                            class="text-link"
-                            [disabled]="!store.canEditPlan(plan)"
-                            (click)="editPlan(plan)"
-                          >
-                            编辑</button
-                          ><button
-                            class="icon-btn"
-                            aria-label="删除计划行"
-                            [disabled]="!store.canEditPlan(plan)"
-                            (click)="deletePlan(plan)"
-                          >
-                            <app-icon name="trash" />
-                          </button>
-                          @if (planType() === '调试备件') {
-                            <button
-                              class="btn small"
-                              [disabled]="store.role() !== 'pm'"
-                              (click)="store.submitSpare(p.id, plan.id)"
-                            >
-                              提交需求
-                            </button>
-                          }
-                        }
-                      </div>
-                    </td>
+                    <td>{{ record.operator }} · {{ record.createdAt.slice(0, 10) }}</td>
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="7" class="empty">当前没有此类计划，可新建或应用模板。</td>
+                    <td colspan="5" class="empty">尚无客户沟通记录。</td>
                   </tr>
                 }
               </tbody>
             </table>
           </div>
-        }
-        @if (planType() === '开票回款') {
-          <div class="readonly-line">
-            <div class="section-heading">
-              <h3>实际开票 / 回款 · S4只读样例</h3>
-              <app-badge text="模拟来源" />
-            </div>
-            样例实际开票：{{ store.money(400000, contract()?.currency || 'CNY') }} · 实际回款：{{
-              store.money(300000, contract()?.currency || 'CNY')
-            }}
-            <p class="fine-print">业务计划可编辑，实际账务不由PM更改。不发送真实开票指令。</p>
-          </div>
-        }
-        @if (planType() === '产研来源') {
-          <div class="readonly-line">
-            来源OTC / 生产样例 · 关联项目{{ p.id }} · 不做跨项目集中采购自动分摊
-          </div>
-        }
-      </section>
-      @if (planType() === 'FAT测试' || planType() === '调试备件') {
+        </section>
         <section class="panel space-top">
-          <app-documents
-            [entityId]="p.id"
-            [kinds]="planType() === 'FAT测试' ? ['FAT报告'] : ['备件清单']"
-            [title]="planType() === 'FAT测试' ? 'FAT执行报告' : '调试备件清单'"
-          />
+          <div class="panel-head">
+            <div>
+              <h2>设备序列号（SN）</h2>
+              <p>记录按项目和合同稳定ID关联；未取得证据的字段标待核，不代表MES同步。</p>
+            </div>
+            <button class="btn primary" (click)="addEquipmentSerial()">新增设备记录</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>SN</th>
+                  <th>型号 / 数量</th>
+                  <th>设备状态</th>
+                  <th>现场位置</th>
+                  <th>节点实际日期</th>
+                  <th>来源 / 项目 / 合同</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (record of p.equipmentSerialRecords || []; track record.id) {
+                  <tr>
+                    <td>
+                      {{ record.serialNumber }}
+                      <p>{{ record.id }}</p>
+                    </td>
+                    <td>{{ record.model }} · {{ record.quantity }}</td>
+                    <td>{{ record.status }}</td>
+                    <td>{{ record.siteLocation }}</td>
+                    <td>{{ record.actualDate || '待核' }}</td>
+                    <td>
+                      {{ record.sourceReference }}
+                      <p>
+                        {{ record.sourceStatus }} · {{ record.projectId }} ·
+                        {{ record.contractId }} ·
+                        {{ record.operator }}
+                      </p>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="empty">尚无SN来源记录；不推断设备已到场或安装。</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </section>
       }
-    }
-    @if (tab() === '验收') {
-      <div class="acceptance-layout">
+      @if (tab() === '验收') {
+        <div class="acceptance-layout">
+          <section class="panel padded">
+            <div class="section-heading">
+              <div>
+                <h2>SAT现场验收测试</h2>
+                <p>独立任务，不由FAT或客户签认自动完成。</p>
+              </div>
+              <app-badge [text]="p.sat.complete ? '已完成' : '待完成'" />
+            </div>
+            <div class="sat-details">
+              <span>测试日期</span><strong>{{ p.sat.date || '待填写' }}</strong>
+            </div>
+            <div class="sat-details"><span>测试结果</span><app-badge [text]="p.sat.result" /></div>
+            <div class="sat-details">
+              <span>SAT报告</span
+              ><app-badge [text]="store.has(p.id, 'SAT报告') ? '已关联' : '待上传'" />
+            </div>
+            <div class="row-actions space-top">
+              <button class="btn" (click)="editSat()">记录测试结果</button
+              ><button class="btn primary" [disabled]="p.sat.complete" (click)="completeSat()">
+                PM确认SAT完成
+              </button>
+            </div>
+          </section>
+          <section class="panel">
+            <app-documents [entityId]="p.id" [kinds]="['SAT报告']" title="SAT测试凭据" />
+          </section>
+        </div>
+        <section class="panel space-top">
+          <div class="panel-head">
+            <div>
+              <h2>客户逐项验收清单</h2>
+              <p>结果、签认与凭据分别记录；不是电子签章。</p>
+            </div>
+            <div class="row-actions">
+              <app-badge [text]="p.acceptanceComplete ? '已完成' : '待逐项签认'" /><button
+                class="btn primary small"
+                [disabled]="p.acceptanceComplete"
+                (click)="store.completeAcceptance(p.id)"
+              >
+                记录验收完成
+              </button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>检查项</th>
+                  <th>检查结果</th>
+                  <th>签认人</th>
+                  <th>签认日期</th>
+                  <th>说明</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of p.acceptance; track item.id) {
+                  <tr>
+                    <td>{{ item.name }}</td>
+                    <td><app-badge [text]="item.result" /></td>
+                    <td>{{ item.signer || '待签认' }}</td>
+                    <td>{{ item.date || '待签认' }}</td>
+                    <td>{{ item.note || '未记录' }}</td>
+                    <td>
+                      <button class="text-link" (click)="check(item)">逐项签认</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section class="panel space-top">
+          <app-documents [entityId]="p.id" [kinds]="['客户签字清单']" title="客户签字验收凭据" />
+        </section>
+      }
+      @if (tab() === '移交') {
+        <section class="panel section-spacing">
+          <div class="status-banner">
+            <div>
+              <h2 style="margin: 0; font-size: 16px">项目内部移交</h2>
+              <p>
+                接收方：{{ p.handover.receiver || '待指定' }} · SAT：{{
+                  p.sat.complete ? '已完成' : '未完成'
+                }}
+              </p>
+            </div>
+            <div class="row-actions">
+              <app-badge [text]="p.handover.status" /><button
+                class="btn small"
+                (click)="receiver()"
+              >
+                选择接收方</button
+              ><button
+                class="btn primary"
+                [disabled]="p.handover.status === '已接收'"
+                (click)="store.submitHandover(p.id)"
+              >
+                发起内部移交
+              </button>
+            </div>
+          </div>
+          @if (!p.sat.complete) {
+            <div class="inline-alert warning" style="margin: 20px">
+              <app-icon name="lock" /><span>SAT任务尚未完成，提交将被阻止。</span
+              ><button class="text-link" (click)="selectTab('验收')">去完成SAT</button>
+            </div>
+          }
+          @if (p.handover.opinion) {
+            <div class="inline-alert" style="margin: 20px">
+              <app-icon name="info" /><span>接收 / 退回意见：{{ p.handover.opinion }}</span>
+            </div>
+          }
+          <div class="panel-head" style="border-top: 1px solid var(--line)">
+            <h3>八类移交资料</h3>
+            <button class="btn small" (click)="reference()">引用现有项目数据</button>
+          </div>
+          <div class="grid-2" style="padding: 20px">
+            @for (c of p.handover.categories; track c.name) {
+              <div class="panel handover-card">
+                <span class="handover-symbol"><app-icon name="file" /></span>
+                <div class="grow">
+                  <div style="display: flex; justify-content: space-between; gap: 8px">
+                    <h3>{{ c.name }}</h3>
+                    <app-badge [text]="c.status" />
+                  </div>
+                  <p>{{ c.note || '查看已有资料或补充引用说明，不适用需填写原因。' }}</p>
+                  <button class="text-link" (click)="category(c.name)">整理此类资料</button>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+        <section class="panel section-spacing">
+          <div class="panel-head">
+            <h2>遗留事项与责任</h2>
+            <button class="btn small" (click)="issue()">
+              <app-icon name="plus" />新增遗留事项
+            </button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>事项</th>
+                  <th>责任人</th>
+                  <th>关闭期限</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of p.handover.issues; track item.id) {
+                  <tr>
+                    <td>{{ item.text }}</td>
+                    <td>{{ item.owner }}</td>
+                    <td>{{ item.due }}</td>
+                    <td>
+                      <button class="text-link" (click)="issue(item)">编辑</button
+                      ><button
+                        class="icon-btn"
+                        aria-label="删除遗留事项"
+                        (click)="removeIssue(item)"
+                      >
+                        <app-icon name="trash" />
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="4" class="empty">
+                      没有已登记的遗留事项；如有待办请明确负责人和期限。
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
         <section class="panel padded">
           <div class="section-heading">
-            <div>
-              <h2>SAT现场验收测试</h2>
-              <p>独立任务，不由FAT或客户签认自动完成。</p>
-            </div>
-            <app-badge [text]="p.sat.complete ? '已完成' : '待完成'" />
+            <h2>接收方处理</h2>
+            <app-badge text="申请与接收分别记录" />
           </div>
-          <div class="sat-details">
-            <span>测试日期</span><strong>{{ p.sat.date || '待填写' }}</strong>
-          </div>
-          <div class="sat-details"><span>测试结果</span><app-badge [text]="p.sat.result" /></div>
-          <div class="sat-details">
-            <span>SAT报告</span
-            ><app-badge [text]="store.has(p.id, 'SAT报告') ? '已关联' : '待上传'" />
-          </div>
-          <div class="row-actions space-top">
-            <button class="btn" [disabled]="store.role() !== 'pm'" (click)="editSat()">
-              记录测试结果</button
-            ><button
+          <p style="font-size: 12px">
+            查看资料和遗留事项，确认收到或退回给PM补充。确认收到不自动代表项目正式关闭或质保开始。
+          </p>
+          <div class="row-actions">
+            <button
               class="btn primary"
-              [disabled]="store.role() !== 'pm' || p.sat.complete"
-              (click)="completeSat()"
+              [disabled]="p.handover.status !== '待接收'"
+              (click)="receive('已接收')"
             >
-              PM确认SAT完成
+              确认收到资料</button
+            ><button
+              class="btn"
+              [disabled]="p.handover.status !== '待接收'"
+              (click)="receive('退回补充')"
+            >
+              退回PM补充
             </button>
+            @if (store.role() !== 'receiver') {
+              <button class="text-link" (click)="store.setRole('receiver')">切换接收方继续</button>
+            }
           </div>
+        </section>
+      }
+      @if (tab() === '财务信息') {
+        <app-project-finance [projectId]="p.id" />
+      }
+      @if (tab() === '资料历史') {
+        @if (p.opportunityId) {
+          <app-solution-service [opportunityId]="p.opportunityId" />
+          <a
+            class="text-link"
+            [routerLink]="['/sales/detail', p.opportunityId]"
+            [queryParams]="{ tab: '方案' }"
+            >查看来源商机方案</a
+          >
+        }
+        <section class="panel padded">
+          <p class="fine-print">
+            设计BOM是Technical
+            Proposal中的来源资料；只有PM明确模拟留档后，才作为项目BOM记录。留档不自动改报价、计划或成本。
+          </p>
+          <app-documents [entityId]="p.id" [kinds]="['BOM']" title="设计BOM（PM项目BOM）模拟留档" />
         </section>
         <section class="panel">
-          <app-documents [entityId]="p.id" [kinds]="['SAT报告']" title="SAT测试凭据" />
+          <app-documents
+            [entityId]="p.id"
+            [kinds]="[
+              '启动纪要',
+              '启动文件',
+              '技术资料',
+              '备件清单',
+              'FAT报告',
+              'SAT报告',
+              '客户签字清单',
+            ]"
+            title="项目资料总览"
+          />
         </section>
-      </div>
-      <section class="panel space-top">
-        <div class="panel-head">
-          <div>
-            <h2>客户逐项验收清单</h2>
-            <p>结果、签认与凭据分别记录；不是电子签章。</p>
-          </div>
-          <div class="row-actions">
-            <app-badge [text]="p.acceptanceComplete ? '已完成' : '待逐项签认'" /><button
-              class="btn primary small"
-              [disabled]="store.role() !== 'pm' || p.acceptanceComplete"
-              (click)="store.completeAcceptance(p.id)"
-            >
-              记录验收完成
-            </button>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>检查项</th>
-                <th>检查结果</th>
-                <th>签认人</th>
-                <th>签认日期</th>
-                <th>说明</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of p.acceptance; track item.id) {
-                <tr>
-                  <td>{{ item.name }}</td>
-                  <td><app-badge [text]="item.result" /></td>
-                  <td>{{ item.signer || '待签认' }}</td>
-                  <td>{{ item.date || '待签认' }}</td>
-                  <td>{{ item.note || '未记录' }}</td>
-                  <td>
-                    <button
-                      class="text-link"
-                      [disabled]="store.role() !== 'pm'"
-                      (click)="check(item)"
-                    >
-                      逐项签认
-                    </button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section class="panel space-top">
-        <app-documents [entityId]="p.id" [kinds]="['客户签字清单']" title="客户签字验收凭据" />
-      </section>
-    }
-    @if (tab() === '移交') {
-      <section class="panel section-spacing">
-        <div class="status-banner">
-          <div>
-            <h2 style="margin: 0; font-size: 16px">项目内部移交</h2>
-            <p>
-              接收方：{{ p.handover.receiver || '待指定' }} · SAT：{{
-                p.sat.complete ? '已完成' : '未完成'
-              }}
-            </p>
-          </div>
-          <div class="row-actions">
-            <app-badge [text]="p.handover.status" /><button
-              class="btn small"
-              [disabled]="store.role() !== 'pm'"
-              (click)="receiver()"
-            >
-              选择接收方</button
-            ><button
-              class="btn primary"
-              [disabled]="store.role() !== 'pm' || p.handover.status === '已接收'"
-              (click)="store.submitHandover(p.id)"
-            >
-              发起内部移交
-            </button>
-          </div>
-        </div>
-        @if (!p.sat.complete) {
-          <div class="inline-alert warning" style="margin: 20px">
-            <app-icon name="lock" /><span>SAT任务尚未完成，提交将被阻止。</span
-            ><button class="text-link" (click)="tab.set('验收')">去完成SAT</button>
-          </div>
-        }
-        @if (p.handover.opinion) {
-          <div class="inline-alert" style="margin: 20px">
-            <app-icon name="info" /><span>接收 / 退回意见：{{ p.handover.opinion }}</span>
-          </div>
-        }
-        <div class="panel-head" style="border-top: 1px solid var(--line)">
-          <h3>八类移交资料</h3>
-          <button class="btn small" [disabled]="store.role() !== 'pm'" (click)="reference()">
-            引用现有项目数据
-          </button>
-        </div>
-        <div class="grid-2" style="padding: 20px">
-          @for (c of p.handover.categories; track c.name) {
-            <div class="panel handover-card">
-              <span class="handover-symbol"><app-icon name="file" /></span>
-              <div class="grow">
-                <div style="display: flex; justify-content: space-between; gap: 8px">
-                  <h3>{{ c.name }}</h3>
-                  <app-badge [text]="c.status" />
+        <section class="panel space-top">
+          <div class="panel-head"><h2>项目操作历史</h2></div>
+          <div class="timeline">
+            @for (h of store.history(p.id); track h.id) {
+              <div class="timeline-item">
+                <span class="avatar">{{ h.operator.slice(0, 1) }}</span>
+                <div>
+                  <h4>{{ h.action }}</h4>
+                  <small>{{ h.operator }} · {{ h.date }}</small>
                 </div>
-                <p>{{ c.note || '查看已有资料或补充引用说明，不适用需填写原因。' }}</p>
-                <button
-                  class="text-link"
-                  [disabled]="store.role() !== 'pm'"
-                  (click)="category(c.name)"
-                >
-                  整理此类资料
-                </button>
               </div>
-            </div>
-          }
-        </div>
-      </section>
-      <section class="panel section-spacing">
-        <div class="panel-head">
-          <h2>遗留事项与责任</h2>
-          <button class="btn small" [disabled]="store.role() !== 'pm'" (click)="issue()">
-            <app-icon name="plus" />新增遗留事项
-          </button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>事项</th>
-                <th>责任人</th>
-                <th>关闭期限</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of p.handover.issues; track item.id) {
-                <tr>
-                  <td>{{ item.text }}</td>
-                  <td>{{ item.owner }}</td>
-                  <td>{{ item.due }}</td>
-                  <td>
-                    <button
-                      class="text-link"
-                      [disabled]="store.role() !== 'pm'"
-                      (click)="issue(item)"
-                    >
-                      编辑</button
-                    ><button
-                      class="icon-btn"
-                      aria-label="删除遗留事项"
-                      [disabled]="store.role() !== 'pm'"
-                      (click)="removeIssue(item)"
-                    >
-                      <app-icon name="trash" />
-                    </button>
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="4" class="empty">
-                    没有已登记的遗留事项；如有待办请明确负责人和期限。
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section class="panel padded">
-        <div class="section-heading">
-          <h2>接收方处理</h2>
-          <app-badge text="申请与接收分别记录" />
-        </div>
-        <p style="font-size: 12px">
-          查看资料和遗留事项，确认收到或退回给PM补充。确认收到不自动代表项目正式关闭或质保开始。
-        </p>
-        <div class="row-actions">
-          <button
-            class="btn primary"
-            [disabled]="store.role() !== 'receiver' || p.handover.status !== '待接收'"
-            (click)="receive('已接收')"
-          >
-            确认收到资料</button
-          ><button
-            class="btn"
-            [disabled]="store.role() !== 'receiver' || p.handover.status !== '待接收'"
-            (click)="receive('退回补充')"
-          >
-            退回PM补充
-          </button>
-          @if (store.role() !== 'receiver') {
-            <button class="text-link" (click)="store.setRole('receiver')">切换接收方继续</button>
-          }
-        </div>
-      </section>
-    }
-    @if (tab() === '资料历史') {
-      <section class="panel">
-        <app-documents
-          [entityId]="p.id"
-          [kinds]="[
-            '启动纪要',
-            '启动文件',
-            '技术资料',
-            '备件清单',
-            'FAT报告',
-            'SAT报告',
-            '客户签字清单',
-          ]"
-          title="项目资料总览"
-        />
-      </section>
-      <section class="panel space-top">
-        <div class="panel-head"><h2>项目操作历史</h2></div>
-        <div class="timeline">
-          @for (h of store.history(p.id); track h.id) {
-            <div class="timeline-item">
-              <span class="avatar">{{ h.operator.slice(0, 1) }}</span>
-              <div>
-                <h4>{{ h.action }}</h4>
-                <small>{{ h.operator }} · {{ h.date }}</small>
-              </div>
-            </div>
-          } @empty {
-            <div class="empty">执行一次操作后可在这里查看记录。</div>
-          }
-        </div>
-      </section>
-    }
+            } @empty {
+              <div class="empty">执行一次操作后可在这里查看记录。</div>
+            }
+          </div>
+        </section>
+      }
+    </fieldset>
   }
 } @else {
   <div class="empty">

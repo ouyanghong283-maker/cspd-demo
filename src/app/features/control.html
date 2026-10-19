@@ -8,15 +8,87 @@
     ><button class="btn danger" (click)="reset()"><app-icon name="reset" />重置演示数据</button>
   </div>
 </div>
-<app-mainline-guide />
+<app-round-progress />
+@if (store.workspaceRecoveryMessage()) {
+  <section class="inline-alert warning" aria-label="工作区恢复状态">
+    {{ store.workspaceRecoveryMessage() }}
+  </section>
+}
+@if (store.state().migrationReviewItems?.length) {
+  <section class="inline-alert warning" aria-label="旧数据待核关系">
+    <strong>旧数据中有 {{ store.state().migrationReviewItems!.length }} 条关联待核</strong>
+    <p>原记录均已保留，没有猜测或自动替换；请逐项核实后再进行依赖这些关联的操作。</p>
+    @for (item of store.state().migrationReviewItems; track item.id) {
+      <div>{{ item.entityType }} {{ item.entityId }} · {{ item.relation }} · {{ item.reason }}</div>
+    }
+  </section>
+}
+@if (store.archivedWorkspaces().length) {
+  <section class="panel padded section-spacing" aria-label="续接旧工作区">
+    <h2>续接旧工作区</h2>
+    <p>切换只改变当前活动指针；工作区快照、旧备份和关联资料继续保留。</p>
+    @for (workspace of store.archivedWorkspaces(); track workspace.id) {
+      <div class="control-actions">
+        <div>
+          <strong>轮次 {{ workspace.roundId }}</strong>
+          <p>数据版本 {{ workspace.dataVersion }} · 本地保留</p>
+        </div>
+        <button class="btn" type="button" (click)="resumeWorkspace(workspace.id, workspace.roundId)">
+          续接此工作区
+        </button>
+      </div>
+    }
+  </section>
+}
+<section class="panel padded section-spacing">
+  <h2>V4核心演示入口</h2>
+  <p>
+    从空白线索开始可连续完成报价、赢单、项目资料与财务。下列起点用于单独练习，切换不清除当前记录。
+  </p>
+  <div class="header-actions">
+    <button class="btn" (click)="start('/sales/detail/DEMO-O001', 'sales', '报价')">
+      普通商机：草稿与缺项</button
+    ><button class="btn" (click)="start('/sales/detail/DEMO-O002', 'sales', '服务条件')">
+      重点投标：特殊服务
+    </button>
+    @if (store.state().solutionSeries?.[0]; as solution) {
+      <button
+        class="btn"
+        (click)="start('/sales/detail/' + solution.opportunityId, 'solution', '方案')"
+      >
+        已发报价：方案新版
+      </button>
+    }
+    @if (store.state().financeSnapshots?.[0]; as snapshot) {
+      <button class="btn" (click)="start('/projects/' + snapshot.projectId, 'finance', '财务信息')">
+        赢单项目：费用与回款
+      </button>
+    }
+  </div>
+  <p class="fine-print">
+    附件和SAP／CRM取数全部模拟；财务保存最终成本即生效。当前浏览器分工作区保存；重新开始会创建新的独立演示轮，保留旧工作区与归属不明附件。
+  </p>
+</section>
 <section class="start-modes" aria-label="选择演示方式">
   <div class="start-mode main">
-    <div><h2>从头演示</h2><p>从现有线索开始，依次体验需求转商机、销售推进、项目接收和交底审核。当前进度会保留在本地数据里。</p></div>
-    <button class="btn primary" (click)="startMainline()">从第 1 步开始<app-icon name="arrow" /></button>
+    <div>
+      <h2>从头演示</h2>
+      <p>
+        从现有线索开始，依次体验需求转商机、销售推进、项目接收和交底审核。当前进度会保留在本地数据里。
+      </p>
+    </div>
+    <button class="btn primary" (click)="startMainline()">
+      从第 1 步开始<app-icon name="arrow" />
+    </button>
   </div>
   <div class="start-mode">
-    <div><h2>本职练习</h2><p>按当前角色打开一个已准备好的典型任务，适合只练习自己负责的操作。</p></div>
-    <button class="btn" (click)="practiceRole()">练习 {{ store.roleInfo().name }}<app-icon name="arrow" /></button>
+    <div>
+      <h2>本职练习</h2>
+      <p>按当前角色打开一个已准备好的典型任务，适合只练习自己负责的操作。</p>
+    </div>
+    <button class="btn" (click)="practiceRole()">
+      练习 {{ store.roleInfo().name }}<app-icon name="arrow" />
+    </button>
   </div>
 </section>
 <section class="panel section-spacing">
@@ -45,6 +117,47 @@
       </button>
     }
   </div>
+</section>
+<section class="panel section-spacing" aria-label="模拟观察日期">
+  <div class="panel-head">
+    <div>
+      <h2>模拟观察日期</h2>
+      <p>切换观察档只改变风险判断的参考日期，不改计划、实际、预算、合同或完成历史。</p>
+    </div>
+    <app-badge [text]="store.dateMode() === 'comparison' ? '预警对比档' : '正常档'" />
+  </div>
+  <div class="control-actions">
+    <div>
+      <h3>
+        当前模式：{{ store.dateMode() === 'comparison' ? '预警对比档' : '正常档' }} · 模拟日期
+        {{ store.observationDate() }}
+      </h3>
+      <p>正常档 2026-10-15，对比档 2026-10-22；刷新后保留。</p>
+    </div>
+    <div class="row-actions">
+      <button
+        class="btn"
+        [class.primary]="store.dateMode() === 'normal'"
+        [disabled]="!store.editingWritable()"
+        (click)="store.setDateMode('normal')"
+      >
+        正常档
+      </button>
+      <button
+        class="btn"
+        [class.primary]="store.dateMode() === 'comparison'"
+        [disabled]="!store.editingWritable()"
+        (click)="store.setDateMode('comparison')"
+      >
+        对比档
+      </button>
+    </div>
+  </div>
+  @if (!store.editingWritable()) {
+    <div class="inline-alert warning" style="margin: 0 22px 22px">
+      当前标签页没有修改资格，不能切换观察档；如需切换请先接管修改权。
+    </div>
+  }
 </section>
 <div class="section-heading">
   <h2>从一个真实工作场景开始</h2>
@@ -91,7 +204,7 @@
   <div>
     <h3>保留本轮走查结果</h3>
     <p>
-      导出业务记录、模拟通知与历史。上传文件内容只保留在本浏览器。<br />重置会清空本轮操作；只是切换角色或案例，无需重置。
+      导出业务记录、模拟通知与历史。V4附件仅保存模拟元数据，不保存原文件。<br />重新开始会切换到新的演示轮并保留旧工作区；只是切换角色或案例，无需重新开始。
     </p>
   </div>
   <button class="btn" (click)="store.export()"><app-icon name="download" />导出JSON数据</button>

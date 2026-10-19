@@ -1,0 +1,470 @@
+{
+  "version": 2,
+  "storageSchemaVersion": 1,
+  "dataVersion": 9,
+  "roundId": "LEGACY-V8-ROUND",
+  "role": "manager",
+  "customers": [
+    {
+      "id": "DEMO-C005",
+      "name": "远景工业园",
+      "shortName": "远景工业",
+      "country": "中国",
+      "email": "customer5@example.com",
+      "region": "",
+      "status": "正式客户",
+      "owner": "赵销售",
+      "employeeSize": "500-1000",
+      "basicInfo": "客户主体档案（DEMO样例）",
+      "createdAt": "2026-10-10",
+      "createdBy": "DEMO样例初始化",
+      "industry": "Owner",
+      "address": "中国，演示项目所在地",
+      "contacts": [
+        {
+          "id": "DEMO-CT5",
+          "name": "李先生",
+          "title": "先生",
+          "department": "项目采购部",
+          "position": "项目对接人",
+          "phone": "13900000004",
+          "email": "contact5@example.com"
+        }
+      ]
+    }
+  ],
+  "sales": [
+    {
+      "id": "DEMO-O005",
+      "type": "opportunity",
+      "customerId": "DEMO-C005",
+      "contactId": "DEMO-CT5",
+      "projectName": "青山储能一期",
+      "owner": "赵销售",
+      "operator": "张销售",
+      "operatorPersonId": "demo-person-sales-zhang",
+      "source": "业务手动登记",
+      "description": "客户拟建设储能项目，已完成需求沟通，容量及交付时间待持续确认。",
+      "capacity": 22,
+      "unit": "MWh",
+      "power": 11,
+      "cellDemand": "314PRO",
+      "projectRegion": "Nordics",
+      "amount": 2480000,
+      "currency": "CNY",
+      "expectedDate": "2026-11-16",
+      "createdDate": "2026-07-01",
+      "convertedDate": "2026-09-25",
+      "stage": "赢单",
+      "status": "已关闭",
+      "grade": "A",
+      "tender": "否",
+      "tradeTerm": "CIF",
+      "competitor": "",
+      "reason": "方案及交期符合客户目标（样例）",
+      "closedDate": "2026-10-05",
+      "incomeDate": "",
+      "convertedTo": "",
+      "leadId": "",
+      "team": [],
+      "customerRoles": [],
+      "g1": "未提交",
+      "deliveryOpinion": "",
+      "resourceWindow": "",
+      "taxCase": "",
+      "taxNote": "",
+      "taxConfirmed": false,
+      "needsReview": false,
+      "quoteFlowMode": "v2",
+      "crmFollowUpSnapshot": {
+        "source": "CRM模拟样例",
+        "snapshotDate": "2026-10-10",
+        "followUpDate": "2026-10-08",
+        "followUpCount": 1,
+        "daysSinceLastFollowUp": 2
+      }
+    }
+  ],
+  "projects": [
+    {
+      "id": "DEMO-P001",
+      "name": "青山储能一期",
+      "customerId": "DEMO-C005",
+      "opportunityId": "DEMO-O005",
+      "contractId": "DEMO-CON001",
+      "pm": "王项目",
+      "site": "江苏省苏州市工业园区",
+      "siteConditions": "具备进场条件，客户提供卸货区",
+      "capacity": 10,
+      "unit": "MWh",
+      "start": "2026-10-12",
+      "status": "启动交底",
+      "accepted": true,
+      "team": [
+        {
+          "id": "DEMO-TM-e97bd796",
+          "role": "solution",
+          "person": "周方案",
+          "department": "解决方案",
+          "window": "2026-10-12 至 2026-11-15",
+          "confirmed": true,
+          "confirmedBy": "王项目"
+        },
+        {
+          "id": "DEMO-TM-a988fb38",
+          "role": "pm",
+          "person": "王项目",
+          "department": "项目管理",
+          "window": "2026-10-12 至 2026-11-15",
+          "confirmed": true,
+          "confirmedBy": "王项目"
+        },
+        {
+          "id": "DEMO-TM-16acc880",
+          "role": "receiver",
+          "person": "吴运维",
+          "department": "运维服务",
+          "window": "2026-10-12 至 2026-11-15",
+          "confirmed": true,
+          "confirmedBy": "王项目"
+        }
+      ],
+      "plans": [
+        {
+          "id": "DEMO-P001-客户主节点",
+          "type": "客户主节点",
+          "name": "客户要求首批到货",
+          "owner": "王项目",
+          "start": "2026-10-12",
+          "end": "2026-10-20",
+          "expected": "2026-10-20",
+          "actual": "",
+          "status": "未开始",
+          "product": "储能系统",
+          "quantity": 10,
+          "batch": "第一批",
+          "linked": "",
+          "amount": 0,
+          "currency": "CNY",
+          "result": "待执行",
+          "receiver": "",
+          "note": "",
+          "wbsCode": "",
+          "predecessor": "",
+          "relationNote": "",
+          "weekWindow": "",
+          "sourceReference": "项目离线来源待补",
+          "sourceStatus": "待核"
+        },
+        {
+          "id": "DEMO-P001-W1",
+          "type": "内部WBS",
+          "name": "项目启动交底",
+          "owner": "王项目",
+          "start": "2026-10-12",
+          "end": "2026-10-16",
+          "expected": "2026-10-16",
+          "actual": "2026-10-16",
+          "status": "已完成",
+          "product": "储能系统",
+          "quantity": 1,
+          "batch": "",
+          "linked": "",
+          "amount": 0,
+          "currency": "CNY",
+          "result": "待执行",
+          "receiver": "",
+          "note": "",
+          "wbsCode": "WBS-01",
+          "durationDays": 5,
+          "predecessor": "",
+          "relationNote": "",
+          "weekWindow": "演示窗口：2026年第42周",
+          "sourceReference": "演示计划样例；模板来源待核",
+          "sourceStatus": "模拟",
+          "completionKind": "briefing",
+          "warningLeadDays": null,
+          "budgetAmount": null,
+          "budgetCurrency": null
+        }
+      ],
+      "riskRecords": [],
+      "communicationRecords": [],
+      "equipmentSerialRecords": [],
+      "briefing": {
+        "acceptance": "按合同配置与客户签字清单逐项确认",
+        "production": "45个工作日（样例）",
+        "shipping": "15个工作日（样例）",
+        "commissioning": "2026-11-20",
+        "review": "附条件通过",
+        "opinion": "",
+        "returns": 0
+      },
+      "conditions": [
+        {
+          "id": "DEMO-CD001",
+          "text": "补齐客户现场接线图",
+          "owner": "周方案",
+          "due": "2026-10-18",
+          "evidence": "",
+          "closed": false
+        }
+      ],
+      "productionApplicable": true,
+      "productionReason": "",
+      "sat": {
+        "date": "",
+        "result": "待执行",
+        "complete": false
+      },
+      "acceptance": [
+        {
+          "id": "DEMO-P001-A0",
+          "name": "产品数量与型号",
+          "result": "待检查",
+          "signer": "",
+          "date": "",
+          "note": ""
+        },
+        {
+          "id": "DEMO-P001-A1",
+          "name": "设备安装及接线",
+          "result": "待检查",
+          "signer": "",
+          "date": "",
+          "note": ""
+        },
+        {
+          "id": "DEMO-P001-A2",
+          "name": "现场测试结果",
+          "result": "待检查",
+          "signer": "",
+          "date": "",
+          "note": ""
+        },
+        {
+          "id": "DEMO-P001-A3",
+          "name": "资料交付",
+          "result": "待检查",
+          "signer": "",
+          "date": "",
+          "note": ""
+        },
+        {
+          "id": "DEMO-P001-A4",
+          "name": "客户培训记录",
+          "result": "待检查",
+          "signer": "",
+          "date": "",
+          "note": ""
+        }
+      ],
+      "acceptanceComplete": false,
+      "handover": {
+        "receiver": "吴运维",
+        "status": "草稿",
+        "opinion": "",
+        "categories": [
+          {
+            "name": "项目信息",
+            "status": "待补",
+            "note": ""
+          },
+          {
+            "name": "商务信息",
+            "status": "待补",
+            "note": ""
+          },
+          {
+            "name": "项目成果",
+            "status": "待补",
+            "note": ""
+          },
+          {
+            "name": "技术信息",
+            "status": "待补",
+            "note": ""
+          },
+          {
+            "name": "风险信息",
+            "status": "待补",
+            "note": ""
+          },
+          {
+            "name": "服务信息",
+            "status": "待补",
+            "note": ""
+          },
+          {
+            "name": "培训信息",
+            "status": "待补",
+            "note": ""
+          },
+          {
+            "name": "待办",
+            "status": "待补",
+            "note": ""
+          }
+        ],
+        "issues": []
+      },
+      "needsReview": false,
+      "reviewReasons": []
+    }
+  ],
+  "contracts": [
+    {
+      "id": "DEMO-CON001",
+      "opportunityId": "DEMO-O005",
+      "customerId": "DEMO-C005",
+      "amount": 2480000,
+      "currency": "CNY",
+      "payment": "签约30% / 发货60% / 验收10%（样例）",
+      "penalty": "延期条款按演示合同约定，非正式合规规则",
+      "product": "储能柜及配套系统",
+      "g3": "已通过（模拟来源）"
+    }
+  ],
+  "activities": [],
+  "attachments": [
+    {
+      "id": "LEGACY-SIM-FILE",
+      "entityId": "DEMO-CON001",
+      "kind": "合同",
+      "name": "只有文件名的旧合同.pdf",
+      "size": 0,
+      "date": "2026-10-01",
+      "operator": "旧操作人",
+      "sample": true,
+      "mode": "simulated",
+      "url": ""
+    }
+  ],
+  "notices": [],
+  "history": [
+    {
+      "id": "LEGACY-FINANCE-HISTORY",
+      "entityId": "DEMO-P001",
+      "action": "旧财务历史（保留原值）",
+      "operator": "旧财务",
+      "date": "2026-10-01"
+    }
+  ],
+  "operationEvents": [],
+  "quoteSeries": [],
+  "financeSnapshots": [
+    {
+      "projectId": "DEMO-P001",
+      "sc": "DEMO-SC-DEMO-P001",
+      "scope": "当前项目独立演示口径，不含父项目分摊",
+      "refreshedAt": "2026-10-10T02:00:00.000Z",
+      "indicators": {
+        "source": "SAP",
+        "snapshotDate": "2026-10-10",
+        "currency": "EUR",
+        "salesAmount": 120000,
+        "grossProfitAmount": 25000,
+        "prepaymentRatio": 30
+      },
+      "cumulativeActualCost": {
+        "projectId": "DEMO-P001",
+        "source": "SAP",
+        "amount": 60000,
+        "currency": "EUR",
+        "scope": "项目累计实际成本演示范围；可能与费用范围重叠",
+        "cutoff": "2026-10-10"
+      },
+      "expenses": [
+        {
+          "id": "DEMO-P001-E1",
+          "category": "差旅",
+          "subtype": "机票",
+          "date": "2026-09-15",
+          "amount": 1200,
+          "currency": "EUR",
+          "person": "王项目",
+          "sourceNumber": "DEMO-E001",
+          "source": "SAP"
+        },
+        {
+          "id": "DEMO-P001-E2",
+          "category": "差旅",
+          "subtype": "酒店",
+          "date": "2026-09-16",
+          "amount": 800,
+          "currency": "EUR",
+          "person": "王项目",
+          "sourceNumber": "DEMO-E002",
+          "source": "SAP"
+        },
+        {
+          "id": "DEMO-P001-E3",
+          "category": "服务",
+          "subtype": "现场支持",
+          "date": "2026-09-20",
+          "amount": 5000,
+          "currency": "CNY",
+          "person": "吴运维",
+          "sourceNumber": "DEMO-E003",
+          "source": "CRM"
+        }
+      ],
+      "invoices": [
+        {
+          "id": "DEMO-P001-I1",
+          "number": "DEMO-INV001",
+          "amount": 100000,
+          "currency": "EUR",
+          "issued": "2026-08-01",
+          "due": "2026-09-01",
+          "received": 0
+        },
+        {
+          "id": "DEMO-P001-I2",
+          "number": "DEMO-INV002",
+          "amount": 20000,
+          "currency": "CNY",
+          "issued": "2026-10-01",
+          "due": "2026-10-10",
+          "received": 0
+        },
+        {
+          "id": "DEMO-P001-I3",
+          "number": "DEMO-INV003",
+          "amount": 30000,
+          "currency": "EUR",
+          "issued": "2026-09-15",
+          "due": "",
+          "received": 0
+        }
+      ],
+      "events": []
+    }
+  ],
+  "paymentMethods": [
+    {
+      "id": "OLD-PAYMENT-CONFLICT",
+      "name": "旧付款",
+      "paymentTermId": "OLD-TERM",
+      "condition": "",
+      "method": "",
+      "proportion": null,
+      "days": null,
+      "fixedAmount": null,
+      "followFixedAmount": false,
+      "deliveryInFullPayment": null,
+      "remarks": "原业务显式空值应保留",
+      "active": true,
+      "revision": 1,
+      "crmFields": {
+        "alp_framework_protocol": {
+          "alp_delivery_in_full_payment": "是"
+        },
+        "alp_delivery_in_full_payment": "否"
+      },
+      "updatedBy": "旧操作人",
+      "updatedAt": "2026-10-01"
+    }
+  ],
+  "v4SchemaVersion": 6
+}

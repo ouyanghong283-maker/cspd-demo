@@ -1,3 +1,4 @@
+import { base } from './browser-config.mjs';
 import { connect, toolText, root } from './mcp-client.mjs';
 import fs from 'node:fs/promises';
 process.env.CSPD_MCP_PROFILE ||= root + '/.mcp-review-2026-10-12';
@@ -37,7 +38,7 @@ async function role(id) {
   );
 }
 async function nav(url) {
-  await call('navigate_page', { type: 'url', url: 'http://localhost:4200' + url });
+  await call('navigate_page', { type: 'url', url: base + url });
 }
 async function sample(save = '保存') {
   await click('填入演示内容');
@@ -68,7 +69,7 @@ function issue(id, name, evidence) {
   console.log('GAP', id, name);
 }
 try {
-  const p = toolText(await raw('new_page', { url: 'http://localhost:4200/control' }));
+  const p = toolText(await raw('new_page', { url: base + '/control' }));
   pageId = Number(p.match(/(\d+):.*\[selected\]/)[1]);
   await click('重置演示数据');
   await call('handle_dialog', { action: 'accept' });
@@ -82,9 +83,15 @@ try {
     await click('编辑客户 / 联系人');
     await fields({ shortName: '复核能源', contact: '陈复核', email: 'audit@example.com' });
     await click('保存');
+    const saved = await state();
+    const lead = saved.sales.find((record) => record.id === leadId);
+    const contactId = saved.customers
+      .find((customer) => customer.id === lead.customerId)
+      .contacts.find((contact) => contact.email === 'audit@example.com')?.id;
+    assert(contactId && lead.contactId === contactId, '客户补录联系人未关联线索');
     await click('编辑信息');
     await fields({
-      contact: '陈复核',
+      contact: contactId,
       capacity: '10',
       amount: '1000000',
       expectedDate: '2026-11-15',

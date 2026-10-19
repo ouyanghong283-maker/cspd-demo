@@ -38,7 +38,7 @@ export const ROUTES_GUIDE: {
   {
     id: 'S04',
     name: '需求表上传后转商机',
-    steps: '先转被阻止→使用演示需求表或选文件→转商机→重复点击',
+    steps: '先转被阻止→模拟上传需求表→转商机→重复点击',
     source: '会议明确收口',
     role: 'sales',
     url: '/sales/detail/DEMO-L001',
@@ -55,9 +55,10 @@ export const ROUTES_GUIDE: {
   },
   {
     id: 'S06',
-    name: '人工评级与普通推进',
-    steps: '补背景/容量/金额/日期/主要联系人→选A和非投标→完成本步',
-    source: '会议明确收口',
+    name: '人工判定等级兼容与普通推进',
+    steps:
+      '补背景/容量/金额/日期/主要联系人→保留原人工判定等级并选A和非投标→完成本步；该字段沿用旧商机等级，不代表项目评分',
+    source: '会议明确收口；沿用原商机人工等级，不新增项目评级',
     role: 'sales',
     url: '/sales/detail/DEMO-O001',
     tab: '概览',
@@ -82,8 +83,8 @@ export const ROUTES_GUIDE: {
   },
   {
     id: 'S09',
-    name: '后续补客户角色和可选竞对',
-    steps: '增改客户角色/态度/影响→留竞对空值→补贸易条款',
+    name: '后续补客户角色与贸易条款',
+    steps: '增改客户角色/态度/影响→补贸易条款；竞品字段不进入本版Demo（主数据在标准CRM侧 Dynamics alp_competitor，只读参照）',
     source: '会议明确；表格交互为演示设计',
     role: 'sales',
     url: '/sales/detail/DEMO-O001',
@@ -119,7 +120,8 @@ export const ROUTES_GUIDE: {
   {
     id: 'S13',
     name: '三个月加权与偏差样例',
-    steps: '查看系数和原始/加权→改金额/等级/阶段/月份→看结果；打开历史偏差样例',
+    steps:
+      '查看预置的阶段/等级系数和原始/演示加权金额→改金额/等级/阶段/月份→看结果；打开历史偏差样例；不代表项目评级或健康度',
     source: '会议明确方向；权重/偏差口径未确认',
     role: 'manager',
     url: '/sales',
@@ -144,12 +146,49 @@ export const ROUTES_GUIDE: {
     tab: '商务补充',
   },
   {
+    id: 'S16',
+    name: '非标CRM线索分配与身份对应',
+    steps: '主管打开DEMO-L002→按演示身份明确分配→销售或对应助理查看→核对来源人员与平台负责人分栏',
+    source: 'V4PRD C5-ID／C5-ST增量；非标CRM人员和来源均为模拟样例',
+    role: 'manager',
+    url: '/sales/detail/DEMO-L002',
+    tab: '概览',
+  },
+  {
+    id: 'S17',
+    name: '非标CRM只读样例与质量提示',
+    steps:
+      '查看DEMO-L004无效、DEMO-L005退回公海、DEMO-L007来源质量说明；确认没有公海处理入口或自动清洗',
+    source: 'V4PRD C5-QA最小脱敏场景',
+    role: 'manager',
+    url: '/sales/detail/DEMO-L007',
+    tab: '概览',
+  },
+  {
+    id: 'S18',
+    name: '非标CRM来源快照与日期口径',
+    steps: '查看DEMO-L001来源系统、快照日期及纯日期保留说明；不把无时区时间推断为UTC',
+    source: 'V4PRD C5-TM模拟快照',
+    role: 'sales',
+    url: '/sales/detail/DEMO-L001',
+    tab: '概览',
+  },
+  {
     id: 'P01',
     name: '销售到交付模拟桥接',
     steps: '进交付演示→看合同/G3来源→PM接收→回看商机',
     source: '原PRD继承，待PM走查；非PM会议已确认',
     role: 'sales',
     url: '/sales/detail/DEMO-O005',
+    tab: '概览',
+  },
+  {
+    id: 'P17',
+    name: '项目成交方案与最新版本区分',
+    steps: '查看项目成交报价明确引用的核心方案；分别核对成交依据、最新上传版和最终确认版',
+    source: 'V4PRD PJ-SOL只读增量',
+    role: 'pm',
+    url: '/projects/DEMO-P001',
     tab: '概览',
   },
   {
@@ -308,7 +347,7 @@ export const ROUTES_GUIDE: {
   {
     id: 'U03',
     name: '保存刷新重置与文件异常',
-    steps: '保存→刷新→查看附件→试失败/超限→未保存离开→重置确认',
+    steps: '模拟记录保存→刷新→查看元数据→取消不新增→重置确认',
     source: '原PRD继承+演示设计',
     role: 'sales',
     url: '/control',

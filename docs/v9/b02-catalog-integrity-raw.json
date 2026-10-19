@@ -1,0 +1,43 @@
+{
+  "recorder": "K11（KIMI）",
+  "ticket": "02-03 / #148",
+  "sourceCommit": "97a7131182e2a53408947c035924635c4e6cd91e",
+  "scenarioCount": 3,
+  "scenarios": [
+    "V9-QTE-01",
+    "V9-QTE-02",
+    "V9-QTE-03"
+  ],
+  "ruleOwner": "CODEX（checkCrmQuoteDemoCatalog 固定规则）",
+  "judgement": "无通过判定，须 CODEX 核验",
+  "reproduce": "node --import tsx scripts/k11-catalog-integrity-record.mjs",
+  "results": [
+    {
+      "case": "A-默认目录原样",
+      "errors": []
+    },
+    {
+      "case": "B-注入重复reference（V9-QTE-PAYMENT 登记两次）",
+      "errors": [
+        "重复reference ID：V9-QTE-PAYMENT"
+      ]
+    },
+    {
+      "case": "C-移除V9-QTE-02-PRODUCT-1（制造断引用与场景缺项）",
+      "errors": [
+        "价格断引用：V9-QTE-02-PRODUCT-1-PRICE",
+        "SKU断引用：V9-QTE-02-PRODUCT-1-SKU",
+        "场景缺项：V9-QTE-02"
+      ]
+    },
+    {
+      "case": "D-同时注入重复与断引用（组合情形）",
+      "errors": [
+        "重复reference ID：V9-QTE-ORG",
+        "价格断引用：V9-QTE-03-PRODUCT-2-PRICE",
+        "SKU断引用：V9-QTE-03-PRODUCT-2-SKU",
+        "场景缺项：V9-QTE-03"
+      ]
+    }
+  ]
+}

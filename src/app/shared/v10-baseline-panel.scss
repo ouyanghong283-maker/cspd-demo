@@ -1,0 +1,76 @@
+:host {
+  --v10-paper: #ffffff;
+  --v10-surface: #f1f5f9;
+  --v10-ink: #18324b;
+  --v10-muted: #52677a;
+  --v10-line: #ccd8e2;
+  --v10-focus: #006b95;
+  display: block;
+}
+.v10-baseline {
+  margin: 16px;
+  padding: clamp(16px, 3vw, 32px);
+  background: var(--v10-paper);
+  color: var(--v10-ink);
+  border: 1px solid var(--v10-line);
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+  }
+  p {
+    max-width: 78ch;
+  }
+  nav,
+  .v10-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-block: 16px;
+  }
+  a {
+    color: var(--v10-focus);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  button,
+  input,
+  select {
+    font: inherit;
+    color: var(--v10-ink);
+    background: var(--v10-surface);
+    border: 1px solid var(--v10-line);
+    border-radius: 4px;
+    padding: 6px 10px;
+    max-width: 100%;
+  }
+  button {
+    cursor: pointer;
+  }
+  :is(a, button, input, select):focus-visible {
+    outline: 3px solid var(--v10-focus);
+    outline-offset: 3px;
+  }
+  [role='status'] {
+    color: var(--v10-muted);
+    border-left: 3px solid var(--v10-line);
+    padding-left: 12px;
+  }
+  .v10-format {
+    font-variant-numeric: tabular-nums;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :host,
+  .v10-baseline,
+  .v10-baseline * {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}

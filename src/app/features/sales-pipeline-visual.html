@@ -1,0 +1,37 @@
+<div class="pipeline-legend"><span>阶段 / 未加权金额</span><span>商机数量与占比</span></div>
+<div class="pipeline-chart">
+  @for (item of counts(); track item.stage; let i = $index) {
+    <a
+      class="pipeline-row"
+      routerLink="/sales/opportunities"
+      [queryParams]="stageParams(item.stage)"
+      [attr.aria-label]="
+        item.stage +
+        '，' +
+        item.count +
+        '个，占' +
+        percent(item.count) +
+        '%，' +
+        store.money(item.amount, currency()) +
+        '，容量' +
+        item.capacities
+      "
+    >
+      <div class="pipeline-name">
+        <span><i [style.background]="colors()[i]"></i>{{ item.stage }}</span
+        ><small>{{ store.money(item.amount, currency()) }}</small>
+      </div>
+      <div class="pipeline-track">
+        <span
+          [style.width.%]="(item.count / scale()) * 100"
+          [style.background]="colors()[i]"
+        ></span>
+      </div>
+      <div class="pipeline-value">
+        <strong>{{ item.count }}<small>个</small></strong
+        ><span>{{ percent(item.count) }}%</span>
+      </div>
+    </a>
+  }
+</div>
+<div class="chart-footnote"><app-icon name="info" />阶段反映当前分布，不代表历史转化率。</div>

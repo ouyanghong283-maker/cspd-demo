@@ -1,7 +1,7 @@
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
 # Compiled output
-/dist
+# dist 不忽略：构建产物随仓库发布，业务人员双击启动脚本即可运行，无需 npm ci
 /tmp
 /out-tsc
 /bazel-out

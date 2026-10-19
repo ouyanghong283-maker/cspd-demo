@@ -1,0 +1,1 @@
+function i(t){let[n=``,o=``]=(t||``).split(`?`),e={};for(let[r,s]of new URLSearchParams(o))r&&(e[r]=s);return{path:n||`/`,query:e}}export{i as t};

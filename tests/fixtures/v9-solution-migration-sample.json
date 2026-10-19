@@ -1,0 +1,94 @@
+{
+  "fixtureOf": "04-02 / #127（K13 整理；映射判断与算法归 C05/C0）",
+  "preparedBy": "K13（KIMI）",
+  "source": "createSeed() 当前快照中的旧方案相关记录，原值照录，不含映射判断",
+  "expectedRelationsSource": "CODEX 冻结预期，见 tests/v9-solution-migration.test.ts（S1/S2/S3）",
+  "judgement": "无通过判定，须 CODEX 核验",
+  "records": {
+    "solutionSeries": [
+      {
+        "id": "V4-SEED-SOL-DEMO-O009",
+        "opportunityId": "DEMO-O009",
+        "latestVersionId": "V4-SEED-SV-DEMO-O009",
+        "finalVersionId": "",
+        "versions": [
+          {
+            "id": "V4-SEED-SV-DEMO-O009",
+            "number": 1,
+            "documentId": "V4-SEED-DOC-DEMO-O009",
+            "owner": "周方案",
+            "operator": "周方案",
+            "createdAt": "2026-10-08T02:00:00.000Z",
+            "note": "已发报价历史示例",
+            "operationId": "seed-DEMO-O009"
+          }
+        ],
+        "marks": []
+      }
+    ],
+    "attachments": [
+      {
+        "id": "V4-SEED-DOC-DEMO-O009",
+        "entityId": "DEMO-O009",
+        "kind": "核心技术方案",
+        "name": "演示_已发报价方案V1.pdf",
+        "size": 0,
+        "date": "2026-10-08T02:00:00.000Z",
+        "operator": "周方案",
+        "sample": true,
+        "mode": "simulated",
+        "url": ""
+      }
+    ],
+    "quoteSeries": [
+      {
+        "id": "DEMO-Q-004",
+        "opportunityId": "DEMO-O009",
+        "versions": [
+          { "id": "DEMO-QV-004-1", "solutionVersionId": "V4-SEED-SV-DEMO-O009", "status": "已记录发出" },
+          { "id": "DEMO-QV-004-2", "status": "草稿" }
+        ]
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "S1-纯转换基准（对应测试第1例）",
+      "mutations": [],
+      "expectedRelations": [
+        "转换不修改输入快照（state 深比较相等）",
+        "生成 solutionWorkspaces 非空；每个版本的 origin='legacy'、file=null、uploadEvidence=null",
+        "首次定稿相关字段保持空：firstFinalization=null、schedule=null、finalizations=[]",
+        "同一快照重复转换结果等价（幂等）",
+        "resolveLegacySolution('solutionSeries','V4-SEED-SOL-DEMO-O009','DEMO-O009') 状态为 resolved 且 original 等于原系列记录",
+        "转换后 quoteSeries 保持原值"
+      ]
+    },
+    {
+      "name": "S2-缺引用与跨商机（对应测试第2例）",
+      "mutations": [
+        "系列 versions[0].documentId 改为 'MISSING-DOCUMENT'",
+        "以 'WRONG-OPPORTUNITY' 作为商机解析原版本"
+      ],
+      "expectedRelations": [
+        "issues 中至少一条 status='missing'",
+        "resolveLegacySolution('solutionVersion','V4-SEED-SV-DEMO-O009','WRONG-OPPORTUNITY') 状态为 missing"
+      ]
+    },
+    {
+      "name": "S3-同名不同身份与报价引用（对应测试第3例）",
+      "mutations": [
+        "写入 solutionDocuments：同一商机 current.技术方案='DOC-SAME'，versions 含 id='DOC-SAME'（documentId 同原值）与 id='DOC-DIFFERENT'（documentId='ANOTHER-DOCUMENT'，kind='技术方案'）",
+        "attachments 追加 id='ANOTHER-DOCUMENT'（其余字段照抄原文档）",
+        "该商机报价 versions[0].solutionVersionId 改为 'NONEXISTENT'"
+      ],
+      "expectedRelations": [
+        "同一 documentId 的版本合并后仅保留一条（w.versions 中 documentId=原文档Id 的记录数为 1）",
+        "同名不同 ID（DOC-SAME / DOC-DIFFERENT）双方保留",
+        "resolveLegacySolution('solutionVersion', 原版本Id, 商机) 的 unifiedId 等于 resolveLegacySolution('solutionDocumentVersion','DOC-SAME',商机) 的 unifiedId",
+        "issues 中至少一条 status='ambiguous'",
+        "resolveLegacySolution('quoteReference:solutionVersionId','DEMO-QV-004-1',商机) 状态为 missing，original 为 { originalId: 'NONEXISTENT', targetType: 'solutionVersion' }"
+      ]
+    }
+  ]
+}

@@ -1,161 +1,509 @@
-<div class="page-heading">
-  <div>
-    <div class="greeting-date">2026年10月10日，星期六</div>
-    <h1>{{ store.person() }}，开始今天的工作</h1>
-    <p>从一个待办开始，让客户信息、项目计划和部门协作在这里接起来。</p>
-  </div>
-  <a class="btn" routerLink="/control"><app-icon name="play" />演示指南</a>
-</div>
-<div class="welcome-strip">
-  <div>
-    <h2>你的角色：{{ store.roleInfo().name }}</h2>
-    <p>
-      {{ store.roleInfo().description }}。<br />这是可操作的业务演示，你的修改会保存在当前浏览器。
-    </p>
-  </div>
-  <div class="header-actions">
-    <div class="welcome-art" aria-hidden="true">
-      <span style="height: 18px"></span><span style="height: 30px"></span
-      ><span style="height: 42px"></span><span style="height: 54px"></span>
+<div class="work-home">
+  <header class="work-heading">
+    <div>
+      <div class="greeting-date"><app-icon name="calendar" />演示日期 · 2026年10月10日，星期六</div>
+      <h1>
+        我的待办<span class="role-chip">{{ store.roleInfo().name }}</span>
+      </h1>
+      <p>{{ store.person() }}，从这里开始今天的工作。</p>
     </div>
-    <div class="start-actions">
-      <button class="btn primary" (click)="startMainline()">从头演示<app-icon name="arrow" /></button>
-      <button class="btn" (click)="practice()">本职练习：{{ store.roleInfo().name }}</button>
+    <div class="heading-actions">
+      <a class="btn" routerLink="/control"><app-icon name="play" />演示指南</a>
+      <button class="btn primary" (click)="practice()">
+        练习我的工作<app-icon name="arrow" />
+      </button>
     </div>
-  </div>
-</div>
-<app-mainline-guide />
-<div class="stats-grid">
-  <a class="stat" routerLink="/sales/opportunities"
-    ><div class="stat-top">在途商机<app-icon name="sales" /></div>
-    <div class="stat-number">{{ ongoing().length }}<small>个</small></div>
-    <div class="stat-bottom"><span class="positive">持续跟进</span>覆盖意向沟通至合同谈判</div></a
-  ><a class="stat" routerLink="/projects"
-    ><div class="stat-top">交付项目<app-icon name="project" /></div>
-    <div class="stat-number">{{ store.state().projects.length }}<small>个</small></div>
-    <div class="stat-bottom">计划、资料和状态统一查看</div></a
-  ><a class="stat" routerLink="/sales"
-    ><div class="stat-top">需要客户跟进<app-icon name="clock" /></div>
-    <div class="stat-number">{{ store.cooling().length }}<small>个</small></div>
-    <div class="stat-bottom">
-      <span style="color: var(--amber)">30天及以上未更新</span> · 演示阈值
-    </div></a
-  ><a class="stat" routerLink="/projects/DEMO-P001"
-    ><div class="stat-top">交底未完成事项<app-icon name="file" /></div>
-    <div class="stat-number">{{ store.unclosedConditions() }}<small>项</small></div>
-    <div class="stat-bottom">补充凭据后由PMO确认关闭</div></a
-  >
-</div>
-<div class="workspace-grid">
-  <div>
-    <section class="panel section-spacing">
-      <div class="panel-head">
-        <h2>需要我处理</h2>
-        <span class="count-label">{{ tasks().length }}项</span>
+  </header>
+  <section class="overview" aria-label="业务概览">
+    <a class="overview-item" routerLink="/sales/opportunities">
+      <span class="metric-icon"><app-icon name="sales" /></span>
+      <div>
+        <span class="metric-label">在途商机</span>
+        <div class="metric-value">{{ ongoing().length }}<small>个</small></div>
+        <p>持续跟进中的业务机会</p>
       </div>
-      @for (task of tasks(); track task.id) {
-        <div class="task-row">
-          <span class="task-symbol" [class.warning]="task.state === '冷却提醒'"
-            ><app-icon [name]="task.icon"
-          /></span>
-          <div class="grow">
-            <h3>{{ task.title }}</h3>
-            <p>{{ task.text }}</p>
-            <div class="time">关联资料与历史记录，可在详情页查看</div>
+    </a>
+    <a class="overview-item" routerLink="/projects">
+      <span class="metric-icon teal"><app-icon name="project" /></span>
+      <div>
+        <span class="metric-label">交付项目</span>
+        <div class="metric-value">{{ store.state().projects.length }}<small>个</small></div>
+        <p>计划、资料与状态一览</p>
+      </div>
+    </a>
+    <a class="overview-item" routerLink="/sales">
+      <span class="metric-icon amber"><app-icon name="clock" /></span>
+      <div>
+        <span class="metric-label">需要客户跟进</span>
+        <div class="metric-value">{{ store.cooling().length }}<small>个</small></div>
+        <p>30天及以上未更新 · 演示阈值</p>
+      </div>
+    </a>
+    <a class="overview-item" routerLink="/projects/DEMO-P001">
+      <span class="metric-icon violet"><app-icon name="file" /></span>
+      <div>
+        <span class="metric-label">交底未完成事项</span>
+        <div class="metric-value">{{ store.unclosedConditions() }}<small>项</small></div>
+        <p>补充凭据后由PMO确认关闭</p>
+      </div>
+    </a>
+  </section>
+  <div class="workspace-grid">
+    <div class="primary-column">
+      <section class="work-panel task-panel" aria-labelledby="my-tasks-title">
+        <div class="section-head">
+          <div class="section-title">
+            <span class="title-mark"></span>
+            <h2 id="my-tasks-title">需要我处理</h2>
+            <span class="task-count">{{ taskView().counts.open }}</span>
           </div>
-          <app-badge [text]="task.state" /><button
-            class="icon-btn"
-            aria-label="去处理待办"
-            (click)="open(task.entityId)"
-          >
-            <app-icon name="arrow" />
-          </button>
+          <span class="section-note">与当前身份关联的待办</span>
         </div>
-      } @empty {
-        <div class="empty">
-          <app-icon name="check" />
-          <h3>当前角色没有待处理事项</h3>
-          <p>可以从下方快捷入口或“练习我的工作”开始。</p>
+        <div class="task-toolbar">
+          <div class="filter-bar" style="margin-bottom: 0">
+            <label class="task-search"
+              ><app-icon name="search" /><input
+                type="search"
+                aria-label="搜索我的待办"
+                placeholder="搜索任务、责任人或编号"
+                [value]="search()"
+                (input)="search.set($any($event.target).value)"
+            /></label>
+            <select
+              aria-label="按部门筛选待办"
+              [value]="department()"
+              (change)="department.set($any($event.target).value)"
+            >
+              <option value="">全部部门</option>
+              @for (name of departments(); track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+            <select
+              aria-label="按项目筛选待办"
+              [value]="projectFilter()"
+              (change)="projectFilter.set($any($event.target).value)"
+            >
+              <option value="">全部项目</option>
+              @for (project of taskProjects(); track project.id) {
+                <option [value]="project.id">{{ project.name }}</option>
+              }
+            </select>
+            <select
+              aria-label="按负责人筛选待办"
+              [value]="ownerFilter()"
+              (change)="ownerFilter.set($any($event.target).value)"
+            >
+              <option value="">全部负责人</option>
+              @for (owner of taskOwners(); track owner) {
+                <option [value]="owner">{{ owner }}</option>
+              }
+            </select>
+            <select
+              aria-label="按状态筛选待办"
+              [value]="statusFilter()"
+              (change)="statusFilter.set($any($event.target).value)"
+            >
+              <option value="open">未完成</option>
+              <option value="completed">已完成</option>
+              <option value="">全部状态</option>
+            </select>
+          </div>
         </div>
-      }
-    </section>
-    <section class="panel section-spacing">
-      <div class="panel-head"><h2>工作快捷入口</h2></div>
-      <div class="quick-actions">
-        <button
-          class="quick-action"
-          style="border-top: 0; border-left: 0; background: white; text-align: left"
-          [disabled]="!store.salesEditable()"
-          (click)="forms.newLead()"
-        >
-          <span><app-icon name="plus" /></span>
-          <div><strong>登记一条新线索</strong><small>从客户信息和需求开始</small></div></button
-        ><a class="quick-action" routerLink="/sales/opportunities"
-          ><span><app-icon name="sales" /></span>
-          <div><strong>推进我的商机</strong><small>信息只填一次，全流程带入</small></div></a
-        ><a class="quick-action" routerLink="/projects"
-          ><span><app-icon name="calendar" /></span>
-          <div><strong>维护项目计划</strong><small>查看节点、责任人和交期</small></div></a
-        ><a class="quick-action" routerLink="/projects/DEMO-P006" [queryParams]="{ tab: '验收' }"
-          ><span><app-icon name="file" /></span>
-          <div><strong>完成验收与移交</strong><small>逐项签认，资料有据可查</small></div></a
-        >
-      </div>
-    </section>
-    <section class="panel">
-      <div class="panel-head">
-        <h2>近期操作记录</h2>
-        <span class="count-label">真实操作即时记录</span>
-      </div>
-      <div class="timeline">
-        @for (h of store.state().history.slice(-4).reverse(); track h.id) {
-          <div class="timeline-item">
-            <span class="avatar">{{ h.operator.slice(0, 1) }}</span>
-            <div>
-              <h4>{{ h.action }}</h4>
-              <small>{{ h.operator }} · {{ h.date }} · {{ h.entityId }}</small>
+        <div class="task-list" aria-live="polite">
+          @for (task of filteredTasks(); track task.id) {
+            <div class="task-row">
+              <span class="task-symbol"><app-icon name="file" /></span>
+              <div class="task-copy">
+                <h3>
+                  <a
+                    [routerLink]="routeLink(task.href).path"
+                    [queryParams]="routeLink(task.href).query"
+                    >{{ task.title }}</a
+                  >
+                </h3>
+                <div class="task-meta">
+                  <span>{{ task.department }}</span
+                  ><span>责任人 {{ task.owner }}</span>
+                  @if (task.dueDate) {
+                    <span class="due-date"><app-icon name="clock" />{{ task.dueDate }} 到期</span>
+                  }
+                </div>
+                <div class="task-id">{{ task.id }}</div>
+              </div>
+              <div class="task-action">
+                @if (task.warning; as warning) {
+                  <app-badge [text]="warning.label" [risk]="warning.level" />
+                  <span>{{ warning.read ? '本人已读' : '本人未读' }}</span>
+                  @if (!warning.read && task.projectId && task.planId) {
+                    <button
+                      class="text-link"
+                      (click)="store.markPlanWarningRead(task.projectId, task.planId)"
+                    >
+                      标记已读
+                    </button>
+                  }
+                } @else {
+                  <app-badge text="待处理" />
+                }
+                <a
+                  class="process-link"
+                  [routerLink]="routeLink(task.href).path"
+                  [queryParams]="routeLink(task.href).query"
+                  [attr.aria-label]="'去处理待办：' + task.title"
+                  >去处理<app-icon name="arrow"
+                /></a>
+              </div>
             </div>
+          } @empty {
+            <div class="task-empty">
+              <span class="empty-icon"
+                ><app-icon [name]="taskView().items.length ? 'search' : 'check'"
+              /></span>
+              <h3>
+                {{ taskView().items.length ? '没有找到匹配的待办' : '当前角色没有待处理事项' }}
+              </h3>
+              <p>
+                {{
+                  taskView().items.length
+                    ? '试试其他关键词、项目、负责人或状态筛选。'
+                    : '可以查看项目进展，或从快捷入口开始工作。'
+                }}
+              </p>
+              @if (hasFilters()) {
+                <button class="btn small" (click)="resetFilters()">清除筛选</button>
+              } @else {
+                <button class="empty-link" (click)="practice()">
+                  练习我的工作<app-icon name="arrow" />
+                </button>
+              }
+            </div>
+          }
+        </div>
+        <div class="panel-foot">
+          <span class="status-dot"></span
+          ><span
+            >共 {{ taskView().counts.open }} 项待处理
+            @if (hasFilters()) {
+              ，当前显示 {{ filteredTasks().length }} 项
+            }</span
+          ><span>随已保存业务记录更新</span>
+        </div>
+      </section>
+      <section class="work-panel" aria-labelledby="warning-title">
+        <div class="section-head">
+          <div class="section-title">
+            <span class="title-mark"></span>
+            <h2 id="warning-title">预警事项</h2>
+            <span class="task-count">{{ warningStat().total }}</span>
           </div>
+          <span class="section-note"
+            >与上方待办为同一事项，不重复计数 · 模拟观察日 {{ store.observationDate() }}</span
+          >
+        </div>
+        <div class="board-caption">
+          <span
+            >已逾期 <strong>{{ warningStat().red }}</strong> 项 · 临期
+            <strong>{{ warningStat().yellow }}</strong> 项 · 未读
+            <strong>{{ warningStat().unread }}</strong> 项</span
+          >
+          <span
+            >涉及 {{ warningStat().projects }} 个项目 · 我的事项共
+            {{ taskView().counts.total }} 项（{{ taskView().counts.open }} 项未完成）</span
+          >
+        </div>
+        <div class="task-toolbar">
+          <div class="filter-bar" style="margin-bottom: 0">
+            <select
+              aria-label="按状态筛选预警"
+              [value]="levelFilter()"
+              (change)="levelFilter.set($any($event.target).value)"
+            >
+              <option value="">全部预警</option>
+              <option value="red">已逾期</option>
+              <option value="yellow">临期</option>
+            </select>
+            <select
+              aria-label="按项目筛选预警"
+              [value]="projectFilter()"
+              (change)="projectFilter.set($any($event.target).value)"
+            >
+              <option value="">全部项目</option>
+              @for (project of taskProjects(); track project.id) {
+                <option [value]="project.id">{{ project.name }}</option>
+              }
+            </select>
+            <select
+              aria-label="按负责人筛选预警"
+              [value]="ownerFilter()"
+              (change)="ownerFilter.set($any($event.target).value)"
+            >
+              <option value="">全部负责人</option>
+              @for (owner of taskOwners(); track owner) {
+                <option [value]="owner">{{ owner }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="task-list" aria-live="polite">
+          @for (warning of filteredWarnings(); track warning.id) {
+            <div class="task-row">
+              <span class="task-symbol"><app-icon name="clock" /></span>
+              <div class="task-copy">
+                <h3>
+                  <a
+                    [routerLink]="routeLink(warning.href).path"
+                    [queryParams]="routeLink(warning.href).query"
+                    >{{ warning.projectName }}：{{ warning.planName }}</a
+                  >
+                </h3>
+                <div class="task-meta">
+                  <span>{{ warning.planType }}</span
+                  ><span>依据日期 {{ warning.basisDate }}</span
+                  ><span>负责人 {{ warning.ownerLabel }}</span
+                  ><span>项目PM {{ warning.pmLabel }}</span>
+                  @if (warning.read) {
+                    <span>本人已读</span>
+                  }
+                </div>
+                @if (warning.missing.length) {
+                  <p class="fine-print">待补：{{ warning.missing.join('、') }}</p>
+                }
+                <div class="task-id">{{ warning.id }}</div>
+              </div>
+              <div class="task-action">
+                <app-badge
+                  [text]="warning.label"
+                  [class]="warningRiskClass(warning)"
+                  [attr.data-level]="warning.level"
+                />
+                <button
+                  class="btn small"
+                  type="button"
+                  [disabled]="warning.read"
+                  (click)="markWarningRead(warning)"
+                >
+                  标记已读
+                </button>
+                <a
+                  class="process-link"
+                  [routerLink]="routeLink(warning.href).path"
+                  [queryParams]="routeLink(warning.href).query"
+                  [attr.aria-label]="'去处理预警：' + warning.projectName + warning.planName"
+                  >去处理<app-icon name="arrow"
+                /></a>
+              </div>
+            </div>
+          } @empty {
+            <div class="task-empty">
+              <span class="empty-icon"><app-icon name="check" /></span>
+              <h3>
+                {{ warningViews().length ? '没有找到匹配的预警' : '当前没有需要你处理的预警' }}
+              </h3>
+              <p>
+                {{
+                  warningViews().length
+                    ? '试试其他项目、负责人或状态筛选。'
+                    : '当前模拟观察日下，负责人和PM都是你的计划未进入临期或逾期。'
+                }}
+              </p>
+            </div>
+          }
+        </div>
+        <div class="panel-foot">
+          <span class="status-dot"></span
+          ><span
+            >共
+            {{ warningStat().total }} 项预警，均已计入上方待办总数；已读只记录本人，不解除风险</span
+          >
+        </div>
+      </section>
+      <section class="work-panel" aria-labelledby="shared-board-title">
+        <div class="section-head">
+          <div>
+            <h2 id="shared-board-title">共享项目看板</h2>
+            <p>跨部门协作，一起推进项目的下一步。</p>
+          </div>
+          <a class="section-link" routerLink="/projects/board"
+            >查看全部<app-icon name="chevron"
+          /></a>
+        </div>
+        <div class="board-caption">
+          <span
+            ><strong>{{ projectBoardView().counts.open }}</strong> 项未完成</span
+          ><span>展示 {{ projectBoardItems().length }} 项待处理事项</span>
+        </div>
+        <div class="board-list">
+          @for (task of projectBoardItems(); track task.id) {
+            <a
+              class="board-row"
+              [routerLink]="routeLink(task.href).path"
+              [queryParams]="routeLink(task.href).query"
+            >
+              <span class="board-dot" aria-hidden="true"></span>
+              <div>
+                <h3>{{ task.title }}</h3>
+                <p>
+                  {{ task.department }}<span>责任人 {{ task.owner }}</span>
+                </p>
+              </div>
+              <app-badge text="待处理" /><app-icon class="row-chevron" name="chevron" />
+            </a>
+          } @empty {
+            <p class="inline-empty">暂无未完成的项目计划或启动交接事项。</p>
+          }
+        </div>
+      </section>
+      <section class="work-panel" aria-labelledby="activity-title">
+        <div class="section-head">
+          <h2 id="activity-title">近期操作记录</h2>
+          <span class="section-note">真实操作即时记录</span>
+        </div>
+        <div class="activity-list">
+          @for (h of store.state().history.slice(-4).reverse(); track h.id) {
+            <div class="activity-row">
+              <span class="activity-avatar">{{ h.operator.slice(0, 1) }}</span>
+              <div>
+                <h3>{{ h.action }}</h3>
+                <p>
+                  {{ h.operator }}<span>{{ h.date }}</span
+                  ><span>{{ h.entityId }}</span>
+                </p>
+              </div>
+            </div>
+          } @empty {
+            <p class="inline-empty">完成一次业务操作后，这里会显示操作记录。</p>
+          }
+        </div>
+      </section>
+    </div>
+    <aside class="secondary-column" aria-label="工作辅助信息">
+      <section class="work-panel quick-panel">
+        <div class="section-head">
+          <h2>工作快捷入口</h2>
+          <app-icon name="grid" />
+        </div>
+        <div class="quick-actions">
+          <button
+            class="quick-action"
+            [disabled]="!store.salesEditable()"
+            (click)="forms.newLead()"
+          >
+            <span class="quick-icon"><app-icon name="plus" /></span
+            ><span><strong>登记新线索</strong><small>从客户信息和需求开始</small></span
+            ><app-icon class="row-chevron" name="chevron" />
+          </button>
+          <a class="quick-action" routerLink="/sales/opportunities"
+            ><span class="quick-icon"><app-icon name="sales" /></span
+            ><span><strong>推进我的商机</strong><small>跟进需求，推进业务机会</small></span
+            ><app-icon class="row-chevron" name="chevron"
+          /></a>
+          <a class="quick-action" routerLink="/projects"
+            ><span class="quick-icon"><app-icon name="calendar" /></span
+            ><span><strong>维护项目计划</strong><small>查看节点、责任人和交期</small></span
+            ><app-icon class="row-chevron" name="chevron"
+          /></a>
+          <a class="quick-action" routerLink="/projects/DEMO-P006" [queryParams]="{ tab: '验收' }"
+            ><span class="quick-icon"><app-icon name="file" /></span
+            ><span><strong>完成验收与移交</strong><small>逐项签认，资料有据可查</small></span
+            ><app-icon class="row-chevron" name="chevron"
+          /></a>
+        </div>
+      </section>
+      <section class="work-panel">
+        <div class="section-head">
+          <h2>项目进展</h2>
+          <a class="section-link" routerLink="/projects">全部项目<app-icon name="chevron" /></a>
+        </div>
+        @for (p of projectList(); track p.id) {
+          <a class="project-mini" [routerLink]="['/projects', p.id]">
+            <div class="project-title">
+              <h3>{{ p.name }}</h3>
+              <app-badge [text]="p.status" />
+            </div>
+            <p>
+              {{ p.pm }}<span>{{ p.capacity }}{{ p.unit }}</span
+              ><span>{{ p.id }}</span>
+            </p>
+            <div class="project-progress">
+              <div
+                class="progress-track"
+                role="progressbar"
+                [attr.aria-label]="p.name + '计划完成度'"
+                [attr.aria-valuenow]="progress(p.id)"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <span [style.width.%]="progress(p.id)"></span>
+              </div>
+              <span>{{ progress(p.id) }}%</span>
+            </div>
+          </a>
         }
-      </div>
-    </section>
+      </section>
+      <section class="work-panel finance-panel">
+        <div class="section-head">
+          <h2>财务摘要</h2>
+          <span class="snapshot-label">{{ financeSummaryLabel() }}</span>
+        </div>
+        @for (summary of financeSummaries(); track summary.sourceId) {
+          @if (summary.status === 'available') {
+            <div class="finance-balances">
+              <span class="section-note">发票未收余额</span>
+              @for (balance of summary.balances; track balance.currency) {
+                <div class="balance">
+                  <span>{{ balance.currency }}</span
+                  ><strong>{{ balance.amount | number: '1.2-2' }}</strong>
+                </div>
+              }
+              <p>截止 {{ summary.asOf || '日期未记录' }}</p>
+            </div>
+            <p class="finance-note">
+              <app-icon name="info" /><span>仅汇总本地演示发票快照，未连接外部财务系统。</span>
+            </p>
+          } @else {
+            <p class="inline-empty">{{ summary.reason }}</p>
+          }
+        }
+      </section>
+    </aside>
   </div>
-  <div>
-    <section class="panel section-spacing">
-      <div class="panel-head">
-        <h2>项目进展</h2>
-        <a class="heading-link" routerLink="/projects">全部项目</a>
+  <details class="demo-tools">
+    <summary>
+      <span class="demo-tools-icon"><app-icon name="play" /></span
+      ><span><strong>演示工作台</strong><small>本轮进度、角色说明与业务接力</small></span
+      ><span class="expand-label">展开工具<app-icon name="down" /></span>
+    </summary>
+    <div class="demo-tools-content">
+      <div class="demo-role section-heading">
+        <div>
+          <h2>你的角色：{{ store.roleInfo().name }}</h2>
+          <p>{{ store.roleInfo().description }}。修改会保存在当前浏览器。</p>
+        </div>
+        <button class="btn" (click)="startMainline()">从头演示<app-icon name="arrow" /></button>
       </div>
-      @for (p of projectList(); track p.id) {
-        <a class="project-mini" [routerLink]="['/projects', p.id]"
-          ><div>
-            <h3>{{ p.name }}</h3>
-            <app-badge [text]="p.status" />
-          </div>
-          <p>{{ p.pm }} · {{ p.capacity }}{{ p.unit }} · {{ p.id }}</p>
-          <div class="progress-track"><span [style.width.%]="progress(p.id)"></span></div
-        ></a>
-      }
-    </section>
-    <section class="panel section-spacing">
-      <div class="panel-head"><h2>一次业务接力</h2></div>
-      <div class="guide-list">
-        <a routerLink="/sales/detail/DEMO-L001"
-          ><app-icon name="users" /><span>销售登记需求并转商机</span><app-icon name="chevron" /></a
-        ><a routerLink="/sales/detail/DEMO-O002"
-          ><app-icon name="sales" /><span>重点投标团队确认参与</span><app-icon name="chevron" /></a
-        ><a routerLink="/projects/DEMO-P001"
-          ><app-icon name="project" /><span>PM接收项目、维护计划</span
-          ><app-icon name="chevron" /></a
-        ><a routerLink="/projects/DEMO-P007" [queryParams]="{ tab: '移交' }"
-          ><app-icon name="check" /><span>接收方确认移交资料</span><app-icon name="chevron"
+      <app-round-progress />
+      <div class="section-heading">
+        <h2>一次业务接力</h2>
+        <a class="section-link" routerLink="/control">查看操作路径<app-icon name="chevron" /></a>
+      </div>
+      <div class="guide-list grid-2">
+        <a class="btn small" routerLink="/sales/detail/DEMO-L001"
+          ><app-icon name="users" />销售登记需求并转商机<app-icon name="chevron"
+        /></a>
+        <a class="btn small" routerLink="/sales/detail/DEMO-O002"
+          ><app-icon name="sales" />重点投标团队确认参与<app-icon name="chevron"
+        /></a>
+        <a class="btn small" routerLink="/projects/DEMO-P001"
+          ><app-icon name="project" />PM接收项目、维护计划<app-icon name="chevron"
+        /></a>
+        <a class="btn small" routerLink="/projects/DEMO-P007" [queryParams]="{ tab: '移交' }"
+          ><app-icon name="check" />接收方确认移交资料<app-icon name="chevron"
         /></a>
       </div>
-    </section>
-    <div class="source-card">
-      <h3>演示边界</h3>
-      <p>审批、生产计划和财务结果有明确的模拟来源标识。角色切换不会清除已填写数据。</p>
-      <a class="text-link" routerLink="/control">查看34条操作路径</a>
+      <p class="demo-note">
+        人员名单与参与窗口均为模拟展示，由PMO手工选择；窗口不锁定资源，也不代表真实资源承诺。审批、生产计划和财务结果均有模拟来源标识；角色切换会保留已填写数据。
+      </p>
     </div>
-  </div>
+  </details>
 </div>

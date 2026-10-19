@@ -1,0 +1,159 @@
+@use '../shared/v9-design-tokens' as v9;
+.v9-reading {
+  @include v9.reading-surface(dark);
+}
+.management-overview {
+  padding: var(--v9-space-6);
+  margin-bottom: var(--v9-space-8);
+  background: var(--v9-surface);
+  border: 1px solid var(--v9-line);
+  border-radius: var(--v9-radius-panel);
+}
+.management-overview h2 {
+  margin-top: var(--v9-space-6);
+}
+@media (max-width: 700px) {
+  .management-overview {
+    padding: var(--v9-space-4);
+  }
+}
+.board-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-block: 16px;
+  border-block: 1px solid var(--v9-line);
+}
+.board-filters label {
+  display: grid;
+  gap: 6px;
+  flex: 1 1 145px;
+  min-width: 0;
+  font-size: var(--v9-font-small, 12px);
+}
+.board-filters input,
+.board-filters select {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding: 10px;
+  border: 1px solid var(--v9-line);
+  border-radius: var(--v9-radius-control);
+  background: var(--v9-ground);
+  color: var(--v9-ink);
+  font: inherit;
+}
+.board-filters input[type='checkbox'] {
+  width: auto;
+  justify-self: start;
+}
+.priority-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 24px;
+  margin-block: 24px;
+}
+.priority-grid section {
+  min-width: 0;
+}
+.priority-item {
+  padding-block: 14px;
+  border-bottom: 1px solid var(--v9-line);
+  overflow-wrap: anywhere;
+}
+.priority-item p {
+  margin-block: 6px;
+}
+.priority-item small {
+  color: var(--v9-muted);
+}
+.exception-list {
+  max-height: 620px;
+  overflow: auto;
+}
+.time-bar {
+  height: 6px;
+  background: var(--v9-line);
+  border-radius: 4px;
+  overflow: hidden;
+  span {
+    display: block;
+    height: 100%;
+    min-width: 2px;
+    background: var(--v9-accent);
+  }
+}
+@media (max-width: 768px) {
+  .priority-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// 宽屏重点业务占约2/3；平板保留双列，手机顺序阅读。
+@media (min-width: 769px) and (max-width: 1100px) {
+  .priority-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+.board-source-context {
+  margin-block: 8px;
+  font-size: 12px;
+}
+.solution-summary {
+  min-width: 160px;
+}
+.solution-summary p {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .board-source-context summary {
+    line-height: 1.5;
+  }
+  .priority-grid {
+    gap: 16px;
+  }
+}
+// 限定背景层高度，用合成层透明度缓慢循环，长表格不参与每帧重绘。
+.management-overview {
+  position: relative;
+  isolation: isolate;
+}
+.management-overview::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: min(900px, 100%);
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(120deg, #071b2b, #102d40, #071b2b);
+  animation: board-background 25s ease-in-out infinite;
+}
+@keyframes board-background {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+.reduce-motion .management-overview::before {
+  animation: none;
+}
+.reduce-motion {
+  --board-transition: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .management-overview::before {
+    animation: none;
+  }
+  :host {
+    --board-transition: 0s;
+  }
+}
+.board-page :focus-visible {
+  outline: 3px solid var(--v9-accent, #234fb0);
+  outline-offset: 3px;
+}

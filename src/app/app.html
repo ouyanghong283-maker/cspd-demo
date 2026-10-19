@@ -1,44 +1,50 @@
 <div class="app-layout">
   <aside class="sidebar" [class.mobile-open]="mobileMenu()">
-    <a class="brand" routerLink="/" (click)="mobileMenu.set(false)"
+    <a class="brand" routerLink="/" (click)="closeMobileMenu()"
       ><span class="brand-mark"><span></span><span></span><span></span></span>
       <div><strong>CSPD</strong><small>项目全链条协同平台</small></div></a
     >
     <div class="workspace-label">业务演示工作区 <span class="edition">DEMO</span></div>
     <nav aria-label="主导航">
-      <a
-        routerLink="/"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        (click)="mobileMenu.set(false)"
-        ><app-icon name="dashboard" /><span>我的工作</span
-        ><small>{{ store.pendingNotices().length || '' }}</small></a
-      >
-      <div class="nav-group">销售协同</div>
-      <a
-        routerLink="/sales"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        (click)="mobileMenu.set(false)"
-        ><app-icon name="trend" /><span>商机看板</span></a
-      >
-      <a routerLink="/sales/leads" routerLinkActive="active" (click)="mobileMenu.set(false)"
-        ><app-icon name="sales" /><span>线索管理</span><small>{{ store.leads().length }}</small></a
-      >
-      <a routerLink="/sales/opportunities" routerLinkActive="active" (click)="mobileMenu.set(false)"
-        ><app-icon name="grid" /><span>商机管理</span></a
-      >
-      <a routerLink="/sales/customers" routerLinkActive="active" (click)="mobileMenu.set(false)"
-        ><app-icon name="users" /><span>客户与联系人</span></a
-      >
-      <div class="nav-group">项目交付</div>
-      <a routerLink="/projects" routerLinkActive="active" (click)="mobileMenu.set(false)"
-        ><app-icon name="project" /><span>项目工作</span></a
-      >
-      <div class="nav-group">演示设置</div>
-      <a routerLink="/control" routerLinkActive="active" (click)="mobileMenu.set(false)"
-        ><app-icon name="control" /><span>演示控制与指南</span></a
-      >
+      @for (group of navGroups; track group.id) {
+        <section class="navigation-group" [attr.aria-label]="group.label">
+          <button
+            class="nav-group"
+            type="button"
+            [attr.aria-expanded]="navGroupExpanded()[group.id]"
+            (click)="toggleNavGroup(group.id)"
+          >
+            <span>{{ group.label }}</span
+            ><span aria-hidden="true">{{ navGroupExpanded()[group.id] ? '−' : '+' }}</span>
+          </button>
+          @if (navGroupExpanded()[group.id]) {
+            @for (item of group.items; track item.id) {
+              <a
+                [routerLink]="navTarget(item.targetPath)"
+                [queryParams]="item.queryParams"
+                [class.active]="isNavActive(item)"
+                [attr.aria-current]="isNavActive(item) ? 'page' : null"
+                (click)="closeMobileMenu()"
+                [attr.aria-label]="
+                  item.label +
+                  (item.targetState === 'planned' ? '，功能待接入' : '') +
+                  (item.badgeSource ? '，待办 ' + navBadge(item) + ' 项' : '')
+                "
+              >
+                <app-icon [name]="navIcon(group.id)" /><span>{{ item.label }}</span>
+                @if (item.badgeSource) {
+                  <small class="nav-badge" [attr.aria-hidden]="true">{{ navBadge(item) }}</small>
+                }
+                @if (item.targetState === 'planned') {
+                  <small>待接入</small>
+                } @else if (item.requiredParams?.length) {
+                  <small>选项目</small>
+                }
+              </a>
+            }
+          }
+        </section>
+      }
     </nav>
     <div class="sidebar-help">
       <span class="help-icon"><app-icon name="info" /></span><strong>从你的工作开始</strong>
@@ -92,6 +98,18 @@
             <option [value]="role.id">{{ role.name }}</option>
           }
         </select>
+        <span
+          class="editing-status"
+          [class.read-only]="!store.editingWritable()"
+          [attr.aria-label]="store.editingWritable() ? '当前标签页可修改' : '当前标签页只读'"
+        >
+          {{ store.editingWritable() ? '当前页可修改' : '只读查看' }}
+        </span>
+        @if (!store.editingWritable()) {
+          <button class="btn small" type="button" (click)="store.takeOverEditing()">
+            接管修改权
+          </button>
+        }
       </div>
     </header>
     @if (notifications()) {
@@ -118,6 +136,18 @@
       </section>
     }
     <main class="page-container">
+      @if (store.v8MigrationMessage()) {
+        <section class="inline-alert error" role="alert" aria-label="旧数据升级提示">
+          <p>{{ store.v8MigrationMessage() }}</p>
+          <button
+            class="btn"
+            [disabled]="!store.editingWritable()"
+            (click)="store.migrateWorkspaceToV8(store.state().dataVersion || 1)"
+          >
+            重试旧数据升级
+          </button>
+        </section>
+      }
       <router-outlet />
       <div class="footer-note">
         CSPD 项目全链条协同平台 · 业务演示工作区 · 所有客户、审批及外部系统结果均为演示数据

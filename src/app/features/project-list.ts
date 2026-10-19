@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { DemoStore } from '../core/store';
+import { personField, PROJECT_MANAGERS } from '../core/personnel';
 import { Project } from '../core/models';
 import { Icon } from '../shared/icon';
 import { Badge } from '../shared/badge';
@@ -13,7 +14,10 @@ import { Badge } from '../shared/badge';
         <h1>项目工作</h1>
         <p>从启动到移交，计划、团队、资料和客户节点在同一项目里连续查看。</p>
       </div>
-      <div class="header-actions"><button class="btn primary" (click)="createDraft()">新建项目草稿</button><a class="btn" routerLink="/control"><app-icon name="play" />练习项目交付</a></div>
+      <div class="header-actions">
+        <button class="btn primary" (click)="createDraft()">新建项目草稿</button
+        ><a class="btn" routerLink="/control"><app-icon name="play" />练习项目交付</a>
+      </div>
     </div>
     <div class="stats-grid">
       <div class="stat">
@@ -61,7 +65,11 @@ import { Badge } from '../shared/badge';
     @if (view() === 'cards') {
       <div class="grid-3">
         @for (p of rows(); track p.id) {
-          <a class="panel project-card" [routerLink]="['/projects', p.id]"
+          <a
+            class="panel project-card"
+            [routerLink]="['/projects', p.id]"
+            queryParamsHandling="preserve"
+            [preserveFragment]="true"
             ><div class="project-top">
               <span class="project-symbol"><app-icon name="project" /></span
               ><app-badge [text]="p.status" />
@@ -109,7 +117,13 @@ import { Badge } from '../shared/badge';
               @for (p of rows(); track p.id) {
                 <tr>
                   <td>
-                    <a class="main-link" [routerLink]="['/projects', p.id]">{{ p.name }}</a>
+                    <a
+                      class="main-link"
+                      [routerLink]="['/projects', p.id]"
+                      queryParamsHandling="preserve"
+                      [preserveFragment]="true"
+                      >{{ p.name }}</a
+                    >
                     <p>{{ p.id }}</p>
                   </td>
                   <td>{{ store.customer(p.customerId)?.shortName }}</td>
@@ -118,7 +132,15 @@ import { Badge } from '../shared/badge';
                   <td><app-badge [text]="p.briefing.review" /></td>
                   <td>{{ openConditions(p) }}项</td>
                   <td>{{ progress(p) }}%</td>
-                  <td><a class="text-link" [routerLink]="['/projects', p.id]">查看项目</a></td>
+                  <td>
+                    <a
+                      class="text-link"
+                      [routerLink]="['/projects', p.id]"
+                      queryParamsHandling="preserve"
+                      [preserveFragment]="true"
+                      >查看项目</a
+                    >
+                  </td>
                 </tr>
               }
             </tbody>
@@ -224,14 +246,32 @@ export class ProjectList {
   createDraft(): void {
     const opportunities = this.store.opportunities().filter((o) => o.stage !== '丢单');
     this.store.ui.open({
-      title: '新建项目号', description: '项目号立即生成；来源商机可以稍后关联。未关联前不能进入交付流程。', submitLabel: '创建项目草稿',
+      title: '新建项目号',
+      description: '项目号立即生成；来源商机可以稍后关联。未关联前不能进入交付流程。',
+      submitLabel: '创建项目草稿',
       fields: [
         { key: 'name', label: '项目名称', required: true },
-        { key: 'pm', label: '拟任PM', type: 'select', options: ['王项目', '刘项目'], value: '王项目', required: true },
+        personField('pm', '拟任PM', '王项目', true, PROJECT_MANAGERS),
         { key: 'site', label: '现场 / 批次' },
-        { key: 'opportunity', label: '立即关联商机（可选）', type: 'select', options: ['', ...opportunities.map((o) => `${o.id} · ${o.projectName}`)], value: '' },
-      ], sample: { name: '青山储能二期', site: '江苏省苏州市', opportunity: '' },
-      onSave: (d) => { const selected = String(d['opportunity'] || '').split(' · ')[0]; const id = this.store.createProjectDraft(d['name'], d['pm'], d['site'], selected); if (!id) return false; this.router.navigate(['/projects', id]); return true; },
+        {
+          key: 'opportunity',
+          label: '立即关联商机（可选）',
+          type: 'select',
+          options: ['', ...opportunities.map((o) => `${o.id} · ${o.projectName}`)],
+          value: '',
+        },
+      ],
+      sample: { name: '青山储能二期', site: '江苏省苏州市', opportunity: '' },
+      onSave: (d) => {
+        const selected = String(d['opportunity'] || '').split(' · ')[0];
+        const id = this.store.createProjectDraft(d['name'], d['pm'], d['site'], selected);
+        if (!id) return false;
+        this.router.navigate(['/projects', id], {
+          queryParamsHandling: 'preserve',
+          preserveFragment: true,
+        });
+        return true;
+      },
     });
   }
   progress(p: Project): number {

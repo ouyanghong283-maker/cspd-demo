@@ -1,0 +1,138 @@
+<section class="v9-reading v9-panel" data-v9-theme="light" aria-label="真实方案文件与期限">
+  <h2>真实方案文件与首次期限</h2>
+  <p class="v9-notice">
+    演示代办可跨部门办理。实际操作者：{{ store.person() }}；业务PM与方案负责人按保存记录保留。
+  </p>
+  <p class="v9-notice">
+    JSON工作区仅含元数据，不含文件字节。恢复后缺件请上传新版；历史上传和首次成绩仍保留。
+  </p>
+  <p>四类输出独立保存；TIC 为输入资料，不替代必传输出。旧模拟记录保留原含义。</p>
+  <p role="status" aria-live="polite">{{ busy() ? '正在保存文件，请等待结果' : feedback() }}</p>
+  @if (!writable()) {
+    <p class="v9-notice">当前仅可查看，请取得当前工作区修改资格。</p>
+  }
+  <section aria-label="首次期限">
+    <h3>首次定稿期限与责任</h3>
+    <p>
+      {{ schedule().status }}
+      @if (schedule().overdueDays) {
+        （{{ schedule().overdueDays }}天）
+      }
+      · {{ schedule().schedule?.deadlineDate ?? '截止日期未设置' }} · 业务PM
+      {{ schedule().schedule?.pm.name ?? '待指定' }} · 方案负责人
+      {{ schedule().schedule?.owner?.name ?? '负责人待指定' }}
+    </p>
+    <p>按真实上海日期 {{ clock.dates().solutionBusinessDate }} 判断</p>
+    <button class="btn" [disabled]="!writable() || schedule().frozen" (click)="beginEdit()">
+      {{ schedule().schedule ? '调整期限' : '设置期限与负责人' }}
+    </button>
+    @if (editingSchedule()) {
+      <form (ngSubmit)="saveSchedule()">
+        <fieldset [disabled]="!writable() || schedule().frozen">
+          <legend>{{ editRevision ? '留因改期' : '首次设置' }}</legend>
+          @if (!editRevision) {
+            <label
+              >PM<select name="pm" [(ngModel)]="pm">
+                <option value="">请选择</option>
+                @for (p of pms; track p.personId) {
+                  <option [value]="p.personId">{{ p.name }}</option>
+                }
+              </select></label
+            ><label
+              >方案负责人<select name="owner" [(ngModel)]="owner">
+                <option value="">请选择</option>
+                @for (p of people; track p.personId) {
+                  <option [value]="p.personId">{{ p.name }}</option>
+                }
+              </select></label
+            >
+          }
+          <label>首次期限<input name="deadline" type="date" [(ngModel)]="deadline" /></label>
+          <label
+            >{{ editRevision ? '改期原因' : '首次说明'
+            }}<textarea name="reason" [(ngModel)]="reason"></textarea></label
+          ><button class="btn" type="submit">保存期限</button>
+        </fieldset>
+        <button class="btn" type="button" (click)="cancelSchedule()">取消期限编辑</button>
+      </form>
+    }
+    <details>
+      <summary>期限调整历史（{{ schedule().history.length }}）</summary>
+      @for (h of schedule().history; track h.id) {
+        <p>
+          {{ h.from?.deadlineDate ?? '首次设置' }} → {{ h.to.deadlineDate }} · {{ h.reason }} · PM
+          {{ h.to.pm.name }} · 操作人 {{ h.operator.name }} ·
+          {{ businessTime(h.changedAt) }}（Asia/Shanghai）
+        </p>
+      }
+    </details>
+  </section>
+  <app-solution-finalization-summary [view]="finalization()" />
+  <label>资料说明 <input [(ngModel)]="note" [disabled]="!writable() || !!busy()" /></label>
+  <div class="outputs">
+    @for (k of kinds; track k) {
+      <article>
+        <h3>{{ label(k) }}</h3>
+        @if (current(k); as v) {
+          <p class="filename">
+            V{{ v.number }} · {{ v.fileName }} ·
+            {{
+              v.origin === 'operation'
+                ? '真实上传'
+                : v.origin === 'legacy'
+                  ? '历史留存'
+                  : '模拟来源'
+            }}{{ finalizedVersion(v.id) ? ' · 已用于定稿' : '' }}
+          </p>
+          <p>
+            {{ v.size }} 字节 · {{ v.owner?.name ?? '负责人待指定' }} ·
+            {{ businessTime(v.uploadedAt) }}（Asia/Shanghai） · 操作人
+            {{ v.operator?.name ?? '待核' }}
+          </p>
+        }
+        @for (f of view().files; track f.kind) {
+          @if (f.kind === k) {
+            <p>{{ status(f.availability) }}</p>
+          }
+        }
+        <details>
+          <summary>{{ label(k) }}版本历史（{{ history(k).length }}）</summary>
+          <p>历史仅保留元数据，不提供下载或内容恢复。</p>
+          @for (h of history(k); track h.id) {
+            <p>
+              V{{ h.number }} · {{ h.fileName || '文件名待核' }} · {{ h.size ?? '大小待核' }} 字节 ·
+              {{
+                h.origin === 'operation'
+                  ? '真实上传'
+                  : h.origin === 'legacy'
+                    ? '旧记录'
+                    : '模拟来源'
+              }}
+              · 负责人 {{ h.owner?.name ?? '待核' }} · 操作人 {{ h.operator?.name ?? '待核' }} ·
+              {{ businessTime(h.uploadedAt) }}{{ finalizedVersion(h.id) ? ' · 曾用于定稿' : '' }}
+            </p>
+          }
+        </details>
+        <label
+          >选择{{ label(k) }}文件<input
+            type="file"
+            [attr.accept]="accept(k)"
+            [disabled]="!writable() || !!busy()"
+            (change)="choose(k, $event)"
+        /></label>
+        @if (selected[k]; as f) {
+          <p class="filename">待保存：{{ f.name }} · {{ f.size }} 字节</p>
+        }
+        <button
+          class="btn"
+          [disabled]="!writable() || !!busy() || !selected[k]"
+          (click)="upload(k)"
+        >
+          保存{{ label(k) }}
+        </button>
+      </article>
+    }
+  </div>
+  <button class="btn" [disabled]="!!busy()" (click)="check()">重新核验文件</button>
+  <app-solution-output-upload />
+</section>

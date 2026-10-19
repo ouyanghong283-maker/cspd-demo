@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>核心技术方案 · 演示文件</title>
+<style>body{font:16px/1.8 system-ui,sans-serif;color:#18304a;max-width:900px;margin:40px auto;padding:0 24px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccd6e2;padding:12px;text-align:left}aside{background:#fff4d8;padding:16px}a{color:#2458c6}@media print{body{margin:0}}</style>
+<h1>Technical Proposal · 核心技术方案</h1><p>编号：DEMO-TP-001　版本：V1.0　日期：2026-10-15</p>
+<aside>本文件为模拟商机的演示资料，参数与衰减数据均为假设，不作为设计、采购、施工或性能承诺。当前商机的产品、数量或现场条件不同时，应另行编制适用方案。</aside>
+<h2>1. 需求与适用范围</h2><p>演示场景：工商业储能，讨论削峰填谷与站级能量管理。目标是展示需求、技术初判和证据引用流程。实际并网条件、功率需求、运行策略与消防条件需进一步确认。</p>
+<h2>2. 演示配置</h2><table><tr><th>产品编码</th><th>产品名称</th><th>数量</th><th>演示标称能量</th></tr><tr><td>ALPHA-CB-215</td><td>工商业液冷储能一体柜</td><td>1 台</td><td>215 kWh</td></tr><tr><td>ALPHA-BC-3440</td><td>液冷磷酸铁锂电池舱</td><td>2 台</td><td>3.44 MWh / 台</td></tr></table><p>合计标称能量：7.095 MWh；此值不代表可交付的可用能量。PCS、变压器及保护设备的选型与额定功率待实际设计。</p>
+<h2>3. 系统说明</h2><p>一体柜与电池舱系统通过各自适配的变流和保护设备接入站级交流母线；EMS协调充放电策略。电池舱至PCS的连接、接地与隔离措施需专项设计。演示SLD仅表达接口关系。</p>
+<h2>4. 衰减假设</h2><p>演示表假设初始容量保持率100%，每年下降2个百分点，第15年为70%。该线性假设仅用于流程展示，未包含温度、循环次数、倍率、日历老化与质保条件，不用于收益测算。</p>
+<h2>5. 配套证据文件</h2><ul><li><a href="DEMO_SLD.svg">SLD 演示单线图</a></li><li><a href="DEMO_BOM.csv">BOM 演示配置表</a></li><li><a href="DEMO_Degradation.csv">衰减曲线演示数据</a></li></ul>
+<h2>6. 技术初判边界与待确认事项</h2><p>本演示文件不自动构成“满足”结论。初判负责人应根据当前需求版本确认适用性，并核对负载曲线、并网电压、功率与能量需求、现场布置、消防要求及当地规范；资料不足时选择“待补资料”。</p></html>

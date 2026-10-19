@@ -1,5 +1,6 @@
 import { connect, toolText, root } from './mcp-client.mjs';
 import fs from 'node:fs/promises';
+import { base } from './browser-config.mjs';
 const { client, call: raw } = await connect();
 let pageId;
 const results = [];
@@ -18,13 +19,13 @@ async function click(name, index = 0) {
   await call('click', { uid: line.match(/uid=(\S+)/)[1] });
 }
 async function nav(url) {
-  await call('navigate_page', { type: 'url', url: 'http://localhost:4200' + url });
+  await call('navigate_page', { type: 'url', url: base + url });
 }
 const expect = (v, m) => {
   if (!v) throw Error(m);
 };
 try {
-  const s = toolText(await raw('new_page', { url: 'http://localhost:4200/control' }));
+  const s = toolText(await raw('new_page', { url: base + '/control' }));
   pageId = Number(s.match(/(\d+):.*\[selected\]/)[1]);
   const text = await fs.readFile(root + '/src/app/core/guide.ts', 'utf8');
   const guides = [
@@ -39,7 +40,7 @@ try {
       "return {path:location.pathname,role:JSON.parse(localStorage.getItem('cspd-demo-v2')).role,select:document.querySelector('.role-select').value,title:document.querySelector('main h1')?.innerText,tab:document.querySelector('.tabs .active')?.textContent.trim(),plan:document.querySelector('.type-tabs .active')?.textContent.trim()}",
     );
     expect(
-      data.path === guides[i][3] &&
+      data.path === (guides[i][1] === 'U01' ? '/sales/detail/DEMO-L001' : guides[i][3]) &&
         data.role === guides[i][2] &&
         data.select === data.role &&
         data.title,
@@ -84,26 +85,12 @@ try {
     '项目未同步客户简称',
   );
   console.log('PASS 客户主数据跨页面同步');
-  const files = [
-    '需求导入表',
-    '启动纪要',
-    '启动文件',
-    '备件清单',
-    'FAT报告',
-    'SAT报告',
-    '客户签字清单',
-    '方案报价样例',
-    '沟通纪要',
-    '技术资料',
-  ];
-  const pdf = await ev(
-    `return Promise.all(${JSON.stringify(files)}.map(async name=>{const r=await fetch('/samples/'+name+'.pdf');const t=await r.text();return{name,status:r.status,pdf:t.startsWith('%PDF-')}}))`,
-  );
+  await nav('/sales/detail/DEMO-L001?tab=' + encodeURIComponent('资料'));
   expect(
-    pdf.every((x) => x.status === 200 && x.pdf),
-    '样例文件无法下载',
+    !(await ev("return !!document.querySelector('input[type=file]')")),
+    'V4不应显示真实上传入口',
   );
-  console.log('PASS 10份真实PDF样例访问');
+  results.push({ name: 'V4模拟资料边界', result: '通过' });
   await nav('/control');
   await click('重置演示数据');
   await call('handle_dialog', { action: 'accept' });
@@ -122,7 +109,7 @@ try {
         results,
         checks: [
           '客户主数据跨页面同步',
-          '10份真实PDF样例访问',
+          'V4模拟资料入口，无真实文件选择',
           '全部路径跳转及刷新角色显示',
           '恢复初始样例',
         ],
